@@ -1,29 +1,6 @@
 <template>
   <div class="min-h-screen bg-gray-100">
-    <nav class="bg-white shadow">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex">
-            <div class="flex-shrink-0 flex items-center">
-              <h1 class="text-xl font-bold text-gray-800">Shigure Cafe</h1>
-            </div>
-            <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <router-link to="/dashboard" class="border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                首页
-              </router-link>
-              <router-link to="/profile" class="border-blue-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium">
-                个人信息
-              </router-link>
-            </div>
-          </div>
-          <div class="flex items-center">
-            <button @click="handleLogout" class="ml-4 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-md transition-colors">
-              退出登录
-            </button>
-          </div>
-        </div>
-      </div>
-    </nav>
+    <NavBar />
 
     <div class="py-10">
       <header>
@@ -74,9 +51,9 @@
     <!-- Email Update Modal -->
     <div v-if="showEmailModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
       <div class="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
-        <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" aria-hidden="true" @click="showEmailModal = false"></div>
+        <!-- Overlay removed -->
 
-        <div class="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full">
+        <div class="relative bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:max-w-lg sm:w-full border border-gray-200">
           <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
             <h3 class="text-lg leading-6 font-medium text-gray-900" id="modal-title">修改绑定邮箱</h3>
             <div class="mt-4 space-y-4">
@@ -113,10 +90,13 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
+import { useToastStore } from '../stores/toast';
+import NavBar from '../components/NavBar.vue';
 import api from '../api';
 
 const auth = useAuthStore();
 const router = useRouter();
+const toastStore = useToastStore();
 
 // Email Update Logic
 const showEmailModal = ref(false);
@@ -126,21 +106,32 @@ const sending = ref(false);
 const countdown = ref(0);
 
 const sendCode = async () => {
-    if (!newEmailForm.value.newEmail) return alert('请输入新邮箱');
-    sending.value = true;
-    try {
-        await api.post('/auth/verification-codes', { email: newEmailForm.value.newEmail });
-        alert('验证码已发送');
-        countdown.value = 60;
-        const timer = setInterval(() => {
-            countdown.value--;
-            if (countdown.value <= 0) clearInterval(timer);
-        }, 1000);
-    } catch (e: any) {
-        alert(e.response?.data?.message || '发送失败');
-    } finally {
-        sending.value = false;
+    if (!newEmailForm.value.newEmail) {
+        toastStore.error('发送失败', '请输入新邮箱地址');
+        return;
     }
+    sending.value = true;
+    
+    // Optimistic UI: Show success message immediately
+    toastStore.success('发送成功', '验证码已发送至您的新邮箱，请注意查收。');
+    countdown.value = 60;
+    const timer = setInterval(() => {
+        countdown.value--;
+        if (countdown.value <= 0) {
+            clearInterval(timer);
+            sending.value = false; // Re-enable button after countdown
+        }
+    }, 1000);
+
+    try {
+        await api.post('/auth/verification-codes', { email: newEmailForm.value.newEmail, type: 'UPDATE_EMAIL' });
+        // No success message here as we've already shown it.
+    } catch (e: any) {
+        // Show error only on failure
+        toastStore.error('发送失败', e.response?.data?.message || '请求失败，请稍后重试');
+        countdown.value = 0; // Reset countdown on error
+    } 
+    // `sending` is managed by the timer now
 };
 
 const handleUpdateEmail = async () => {
@@ -148,11 +139,11 @@ const handleUpdateEmail = async () => {
     loading.value = true;
     try {
         await api.put(`/users/${auth.user.username}/email`, newEmailForm.value);
-        alert('邮箱修改成功');
+        toastStore.success('修改成功', '您的邮箱已成功更新。');
         showEmailModal.value = false;
         await auth.fetchCurrentUser(); // Refresh user data
     } catch (e: any) {
-        alert(e.response?.data?.message || '修改失败');
+        toastStore.error('修改失败', e.response?.data?.message || '请检查您的验证码是否正确');
     } finally {
         loading.value = false;
     }
@@ -163,9 +154,4 @@ onMounted(async () => {
     await auth.fetchCurrentUser();
   }
 });
-
-const handleLogout = async () => {
-  await auth.logout();
-  router.push('/login');
-};
 </script>

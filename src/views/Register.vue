@@ -37,8 +37,10 @@
 import { ref } from 'vue';
 import api from '../api';
 import { useRouter } from 'vue-router';
+import { useToastStore } from '../stores/toast';
 
 const router = useRouter();
+const toastStore = useToastStore();
 const form = ref({
   username: '',
   email: '',
@@ -51,20 +53,28 @@ const sending = ref(false);
 const countdown = ref(0);
 
 const sendCode = async () => {
-  if (!form.value.email) return alert('请输入邮箱');
+  if (!form.value.email) {
+    toastStore.error('发送失败', '请输入您的邮箱地址');
+    return;
+  }
+  
+  // Optimistic UI
   sending.value = true;
+  toastStore.success('发送成功', '验证码已发送至您的邮箱，请注意查收。');
+  countdown.value = 60;
+  const timer = setInterval(() => {
+    countdown.value--;
+    if (countdown.value <= 0) {
+      clearInterval(timer);
+      sending.value = false;
+    }
+  }, 1000);
+
   try {
-    await api.post('/auth/verification-codes', { email: form.value.email });
-    alert('验证码已发送至您的邮箱');
-    countdown.value = 60;
-    const timer = setInterval(() => {
-      countdown.value--;
-      if (countdown.value <= 0) clearInterval(timer);
-    }, 1000);
+    await api.post('/auth/verification-codes', { email: form.value.email, type: 'REGISTER' });
   } catch (e: any) {
-    alert(e.response?.data?.message || '发送失败');
-  } finally {
-    sending.value = false;
+    toastStore.error('发送失败', e.response?.data?.message || '请求失败，请稍后重试');
+    countdown.value = 0;
   }
 };
 
@@ -72,10 +82,10 @@ const handleRegister = async () => {
   loading.value = true;
   try {
     await api.post('/registrations', form.value);
-    alert('注册成功，请等待管理员审核');
+    toastStore.success('注册成功', '您的账号需要等待管理员审核后才能登录。');
     router.push('/login');
   } catch (e: any) {
-    alert(e.response?.data?.message || '注册失败');
+    toastStore.error('注册失败', e.response?.data?.message || '请检查您填写的信息');
   } finally {
     loading.value = false;
   }

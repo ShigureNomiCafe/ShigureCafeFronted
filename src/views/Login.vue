@@ -39,11 +39,13 @@
 import { ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
+import { useToastStore } from '../stores/toast';
 
 const form = ref({ username: '', password: '' });
 const loading = ref(false);
 const auth = useAuthStore();
 const router = useRouter();
+const toastStore = useToastStore();
 
 const handleLogin = async () => {
   loading.value = true;
@@ -51,7 +53,7 @@ const handleLogin = async () => {
     await auth.login(form.value);
     router.push('/dashboard');
   } catch (e: any) {
-    alert(e.response?.data?.message || '登录失败，请检查用户名或密码');
+    toastStore.error('登录失败', e.response?.data?.message || '请检查您的用户名和密码');
   } finally {
     loading.value = false;
   }

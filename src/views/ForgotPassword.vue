@@ -39,8 +39,10 @@
 import { ref } from 'vue';
 import api from '../api';
 import { useRouter } from 'vue-router';
+import { useToastStore } from '../stores/toast';
 
 const router = useRouter();
+const toastStore = useToastStore();
 const form = ref({
   email: '',
   verificationCode: '',
@@ -52,20 +54,28 @@ const sending = ref(false);
 const countdown = ref(0);
 
 const sendCode = async () => {
-  if (!form.value.email) return alert('请输入邮箱');
+  if (!form.value.email) {
+    toastStore.error('发送失败', '请输入您的邮箱地址');
+    return;
+  }
+
+  // Optimistic UI
   sending.value = true;
+  toastStore.success('发送成功', '验证码已发送至您的邮箱，请注意查收。');
+  countdown.value = 60;
+  const timer = setInterval(() => {
+    countdown.value--;
+    if (countdown.value <= 0) {
+      clearInterval(timer);
+      sending.value = false;
+    }
+  }, 1000);
+
   try {
-    await api.post('/auth/verification-codes', { email: form.value.email });
-    alert('验证码已发送至您的邮箱');
-    countdown.value = 60;
-    const timer = setInterval(() => {
-      countdown.value--;
-      if (countdown.value <= 0) clearInterval(timer);
-    }, 1000);
+    await api.post('/auth/verification-codes', { email: form.value.email, type: 'RESET_PASSWORD' });
   } catch (e: any) {
-    alert(e.response?.data?.message || '验证码发送失败，请稍后重试');
-  } finally {
-    sending.value = false;
+    toastStore.error('发送失败', e.response?.data?.message || '请求失败，请稍后重试');
+    countdown.value = 0;
   }
 };
 
@@ -73,10 +83,10 @@ const handleReset = async () => {
   loading.value = true;
   try {
     await api.post('/auth/password-reset', form.value);
-    alert('密码重置成功，请使用新密码登录');
+    toastStore.success('操作成功', '密码已重置，请使用新密码登录。');
     router.push('/login');
   } catch (e: any) {
-    alert(e.response?.data?.message || '重置失败，请检查验证码是否正确');
+    toastStore.error('重置失败', e.response?.data?.message || '请检查验证码是否正确');
   } finally {
     loading.value = false;
   }

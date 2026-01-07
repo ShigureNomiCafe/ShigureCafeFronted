@@ -1,4 +1,4 @@
-import axios from 'axios';
+﻿import axios from 'axios';
 
 const api = axios.create({
   baseURL: '/api/v1',
@@ -18,7 +18,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    if (error.response?.status === 401 && !error.config.url?.includes('/auth/token')) {
       localStorage.removeItem('token');
       window.location.href = '/login';
     }
