@@ -85,6 +85,12 @@ const sendCode = async () => {
 };
 
 const handleRegister = async () => {
+  const usernameRegex = /^[a-zA-Z0-9-_]{3,50}$/;
+  if (!usernameRegex.test(form.username)) {
+    toastStore.error('注册失败', '用户名必须为3-50位，且只能包含字母、数字、连字符和下划线');
+    return;
+  }
+
   loading.value = true;
   try {
     await api.post('/registrations', form);
