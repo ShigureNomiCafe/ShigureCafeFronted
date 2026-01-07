@@ -59,6 +59,12 @@ const sendCode = async () => {
     return;
   }
 
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(form.value.email)) {
+    toastStore.error('发送失败', '请输入有效的邮箱地址');
+    return;
+  }
+
   // Optimistic UI
   sending.value = true;
   toastStore.success('发送成功', '验证码已发送至您的邮箱，请注意查收。');

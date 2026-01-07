@@ -108,6 +108,13 @@ const sendCode = async () => {
         toastStore.error('发送失败', '请输入新邮箱地址');
         return;
     }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(newEmailForm.value.newEmail)) {
+        toastStore.error('发送失败', '请输入有效的邮箱地址');
+        return;
+    }
+
     sending.value = true;
     
     // Optimistic UI: Show success message immediately

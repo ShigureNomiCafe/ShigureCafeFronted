@@ -10,7 +10,7 @@
           <input v-model="form.username" type="text" required class="appearance-none rounded-lg block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="用户名" />
           
           <div class="flex space-x-2">
-            <input v-model="form.email" type="email" required class="appearance-none rounded-lg block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="电子邮箱" />
+            <input v-model.trim="form.email" type="email" required class="appearance-none rounded-lg block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="电子邮箱" />
             <button @click="sendCode" type="button" :disabled="sending || countdown > 0" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50">
               {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
             </button>
@@ -34,14 +34,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, reactive } from 'vue';
 import api from '../api';
 import { useRouter } from 'vue-router';
 import { useToastStore } from '../stores/toast';
 
 const router = useRouter();
 const toastStore = useToastStore();
-const form = ref({
+const form = reactive({
   username: '',
   email: '',
   password: '',
@@ -53,8 +53,14 @@ const sending = ref(false);
 const countdown = ref(0);
 
 const sendCode = async () => {
-  if (!form.value.email) {
+  if (!form.email) {
     toastStore.error('发送失败', '请输入您的邮箱地址');
+    return;
+  }
+  
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(form.email)) {
+    toastStore.error('发送失败', '请输入有效的邮箱地址');
     return;
   }
   
@@ -71,7 +77,7 @@ const sendCode = async () => {
   }, 1000);
 
   try {
-    await api.post('/auth/verification-codes', { email: form.value.email, type: 'REGISTER' });
+    await api.post('/auth/verification-codes', { email: form.email, type: 'REGISTER' });
   } catch (e: any) {
     toastStore.error('发送失败', e.response?.data?.message || '请求失败，请稍后重试');
     countdown.value = 0;
@@ -81,7 +87,7 @@ const sendCode = async () => {
 const handleRegister = async () => {
   loading.value = true;
   try {
-    await api.post('/registrations', form.value);
+    await api.post('/registrations', form);
     toastStore.success('注册成功', '您的账号需要等待管理员审核后才能登录。');
     router.push('/login');
   } catch (e: any) {
