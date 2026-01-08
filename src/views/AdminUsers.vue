@@ -112,8 +112,8 @@
               leave-from-class="opacity-100 translate-y-0 sm:scale-100"
               leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
-              <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <div class="relative inline-block align-bottom bg-white rounded-2xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 rounded-t-2xl">
                   <div class="sm:flex sm:items-start">
                     <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 sm:mx-0 sm:h-10 sm:w-10">
                       <UserCog class="h-6 w-6 text-indigo-600" />
@@ -127,16 +127,48 @@
                         </div>
                         <div>
                           <label class="block text-sm font-medium text-gray-700 mb-1">角色权限</label>
-                          <select v-model="editForm.role" class="appearance-none rounded-xl relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm bg-white">
-                            <option value="USER">USER</option>
-                            <option value="ADMIN">ADMIN</option>
-                          </select>
+                          <div class="relative">
+                            <button 
+                              @click="showRoleDropdown = !showRoleDropdown"
+                              type="button"
+                              class="relative w-full bg-white/50 border border-gray-300 rounded-xl shadow-sm pl-4 pr-10 py-2.5 text-left cursor-default focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200"
+                            >
+                              <span class="block truncate font-medium text-gray-900">{{ editForm.role }}</span>
+                              <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                <ChevronDown class="h-4 w-4 text-gray-400 transition-transform duration-300" :class="{ 'rotate-180': showRoleDropdown }" />
+                              </span>
+                            </button>
+
+                            <transition
+                              enter-active-class="transition ease-out duration-200"
+                              enter-from-class="opacity-0 scale-95 -translate-y-2"
+                              enter-to-class="opacity-100 scale-100 translate-y-0"
+                              leave-active-class="transition ease-in duration-150"
+                              leave-from-class="opacity-100 scale-100 translate-y-0"
+                              leave-to-class="opacity-0 scale-95 -translate-y-2"
+                            >
+                              <div v-if="showRoleDropdown" class="absolute z-60 mt-1 w-full bg-white/90 backdrop-blur-lg shadow-xl max-h-60 rounded-xl py-1 text-base ring-1 ring-black ring-opacity-5 overflow-auto focus:outline-none sm:text-sm border border-gray-100">
+                                <div 
+                                  v-for="role in ['USER', 'ADMIN']" 
+                                  :key="role"
+                                  @click="selectRole(role)"
+                                  class="cursor-pointer select-none relative py-2.5 pl-4 pr-9 hover:bg-blue-50 transition-colors"
+                                  :class="editForm.role === role ? 'text-blue-600 bg-blue-50/50' : 'text-gray-900'"
+                                >
+                                  <span class="block truncate" :class="{ 'font-bold': editForm.role === role }">{{ role }}</span>
+                                  <span v-if="editForm.role === role" class="absolute inset-y-0 right-0 flex items-center pr-4">
+                                    <Check class="h-4 w-4" />
+                                  </span>
+                                </div>
+                              </div>
+                            </transition>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse rounded-b-2xl">
                   <button @click="saveEdit" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">保存更改</button>
                   <button @click="closeEdit" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">取消</button>
                 </div>
@@ -255,7 +287,7 @@ import NavBar from '../components/NavBar.vue';
 import api from '../api';
 import { useToastStore } from '../stores/toast';
 import { useAuthStore } from '../stores/auth';
-import { Edit2, KeyRound, RotateCw, Loader2, Users, UserCog, Trash2 } from 'lucide-vue-next';
+import { Edit2, KeyRound, RotateCw, Loader2, Users, UserCog, Trash2, ChevronDown, Check } from 'lucide-vue-next';
 
 interface User {
   username: string;
@@ -268,6 +300,7 @@ const users = ref<User[]>([]);
 const showEditModal = ref(false);
 const showPasswordModal = ref(false);
 const showDeleteModal = ref(false);
+const showRoleDropdown = ref(false);
 const selectedUser = ref<User | null>(null);
 const loading = ref(false);
 const toast = useToastStore();
@@ -277,6 +310,11 @@ const editForm = ref({
   email: '',
   role: 'USER'
 });
+
+const selectRole = (role: string) => {
+  editForm.value.role = role;
+  showRoleDropdown.value = false;
+};
 
 const passwordForm = ref({
   newPassword: '',
@@ -320,6 +358,7 @@ const openEdit = (user: User) => {
 
 const closeEdit = () => {
   showEditModal.value = false;
+  showRoleDropdown.value = false;
   selectedUser.value = null;
 };
 
