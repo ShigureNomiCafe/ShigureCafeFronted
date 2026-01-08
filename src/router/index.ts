@@ -54,6 +54,7 @@ const router = createRouter({
       meta: { requiresAuth: true, requiresAdmin: true }
     },
     { path: '/', redirect: '/dashboard' }, // Redirect to dashboard, guard will handle if not logged in
+    { path: '/:pathMatch(.*)*', redirect: '/' }
   ],
 });
 
