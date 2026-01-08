@@ -1,33 +1,48 @@
 <template>
-  <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4">
-    <div class="max-w-md w-full space-y-8 p-8 bg-white rounded-xl shadow-lg border border-gray-100">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 sm:px-6 lg:px-8 transition-colors duration-500">
+    <div class="max-w-md w-full space-y-8 p-10 bg-white/70 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/50 transform transition-all duration-500 hover:shadow-3xl animate-[fade_0.5s_ease-out]">
       <div class="text-center">
-        <h2 class="text-3xl font-extrabold text-gray-900">重置密码</h2>
+        <h2 class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">重置密码</h2>
         <p class="mt-2 text-sm text-gray-600">请输入您的邮箱以获取验证码</p>
       </div>
       <form class="mt-8 space-y-6" @submit.prevent="handleReset">
-        <div class="rounded-md shadow-sm space-y-4">
+        <div class="space-y-4">
           <!-- 邮箱输入和发送验证码 -->
-          <div class="flex space-x-2">
-            <input v-model="form.email" type="email" required class="appearance-none rounded-lg block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="电子邮箱" />
-            <button @click="sendCode" type="button" :disabled="sending || countdown > 0" class="whitespace-nowrap px-3 py-2 text-sm font-medium text-blue-600 border border-blue-600 rounded-lg hover:bg-blue-50 disabled:opacity-50">
-              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
-            </button>
+          <div class="group">
+             <label for="email" class="block text-sm font-medium text-gray-700 mb-1 ml-1">电子邮箱</label>
+             <div class="flex space-x-2">
+                <input v-model="form.email" id="email" type="email" required class="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200 bg-white/50 focus:bg-white" placeholder="your@email.com" />
+                <button @click="sendCode" type="button" :disabled="sending || countdown > 0" class="whitespace-nowrap px-4 py-3 text-sm font-bold text-blue-600 border border-blue-200 bg-blue-50/50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 w-32 shadow-sm">
+                  {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+                </button>
+             </div>
           </div>
 
           <!-- 验证码 -->
-          <input v-model="form.verificationCode" type="text" required class="appearance-none rounded-lg block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="验证码" />
+          <div class="group">
+            <label for="code" class="block text-sm font-medium text-gray-700 mb-1 ml-1">验证码</label>
+            <input v-model="form.verificationCode" id="code" type="text" required class="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200 bg-white/50 focus:bg-white" placeholder="请输入验证码" />
+          </div>
           
           <!-- 新密码 -->
-          <input v-model="form.newPassword" type="password" required class="appearance-none rounded-lg block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="新密码" />
+          <div class="group">
+            <label for="newPassword" class="block text-sm font-medium text-gray-700 mb-1 ml-1">新密码</label>
+            <input v-model="form.newPassword" id="newPassword" type="password" required class="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200 bg-white/50 focus:bg-white" placeholder="设置新密码" />
+          </div>
         </div>
 
-        <button :disabled="loading" type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 transition-colors">
-          {{ loading ? '重置中...' : '重置密码' }}
+        <button :disabled="loading" type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 ease-out">
+          <span v-if="loading" class="mr-2">
+            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          </span>
+          {{ loading ? '正在重置...' : '重置密码' }}
         </button>
       </form>
-      <div class="text-center text-sm">
-        <router-link to="/login" class="font-medium text-blue-600 hover:text-blue-500 transition-colors">
+      <div class="text-center text-sm mt-4">
+        <router-link to="/login" class="font-medium text-blue-600 hover:text-indigo-500 transition-colors">
           记起密码了？返回登录
         </router-link>
       </div>
@@ -99,3 +114,4 @@ const handleReset = async () => {
   }
 };
 </script>
+

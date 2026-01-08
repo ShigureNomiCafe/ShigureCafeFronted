@@ -2,92 +2,106 @@
   <div class="min-h-screen bg-gray-50">
     <NavBar />
     
-    <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-      <div class="px-4 py-6 sm:px-0">
-        <div class="flex justify-between items-center mb-6">
-          <h1 class="text-2xl font-bold text-gray-900">注册审核</h1>
+    <div class="py-10 transition-all duration-500 ease-in-out">
+      <header>
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-[slide-up_0.5s_ease-out]">
+            注册审核
+          </h1>
           <button 
             @click="fetchAudits" 
-            class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors animate-[slide-up_0.5s_ease-out_0.1s_both]"
           >
+            <RotateCw class="h-4 w-4 mr-2" :class="{ 'animate-spin': loading }" />
             刷新列表
           </button>
         </div>
+      </header>
 
-        <div class="bg-white shadow overflow-hidden sm:rounded-lg">
-          <div v-if="loading" class="p-6 text-center text-gray-500">
-            加载中...
+      <main>
+        <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8">
+          <div class="px-4 sm:px-0 animate-[slide-up_0.5s_ease-out_0.2s_both]">
+            
+            <div class="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-100">
+              <!-- Loading State -->
+              <div v-if="loading && audits.length === 0" class="p-12 flex justify-center items-center text-gray-400">
+                <Loader2 class="h-8 w-8 animate-spin" />
+              </div>
+
+              <!-- Empty State -->
+              <div v-else-if="audits.length === 0" class="p-12 text-center text-gray-500 flex flex-col items-center">
+                <ClipboardList class="h-12 w-12 text-gray-300 mb-3" />
+                <p>暂无待审核用户</p>
+              </div>
+
+              <!-- Audits Table -->
+              <div v-else class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                  <thead class="bg-gray-50/50">
+                    <tr>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户ID</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户名</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">电子邮箱</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">审核码</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                      <th scope="col" class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody class="bg-white divide-y divide-gray-100">
+                    <tr v-for="audit in audits" :key="audit.userId" class="hover:bg-gray-50/80 transition-colors duration-150">
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
+                        #{{ audit.userId }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="flex items-center">
+                          <div class="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold text-xs mr-3">
+                            {{ audit.username.substring(0, 2).toUpperCase() }}
+                          </div>
+                          <div class="text-sm font-medium text-gray-900">{{ audit.username }}</div>
+                        </div>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {{ audit.email }}
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800 font-mono">
+                           {{ audit.auditCode }}
+                         </span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span 
+                          class="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full"
+                          :class="{
+                            'bg-green-100 text-green-800': audit.status === 'ACTIVE',
+                            'bg-yellow-100 text-yellow-800': audit.status === 'PENDING',
+                            'bg-red-100 text-red-800': audit.status === 'BANNED',
+                            'bg-gray-100 text-gray-800': audit.isExpired
+                          }"
+                        >
+                          {{ audit.isExpired ? '已过期' : formatStatus(audit.status) }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <button 
+                          v-if="!audit.isExpired && audit.status !== 'ACTIVE'"
+                          @click="approveAudit(audit.userId)" 
+                          class="inline-flex items-center px-3 py-1.5 border border-transparent text-xs font-medium rounded-full shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                        >
+                          <CheckCircle class="h-3.5 w-3.5 mr-1" />
+                          通过
+                        </button>
+                        <span v-else class="text-gray-400 text-xs italic">
+                          无需操作
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-          <div v-else-if="audits.length === 0" class="p-6 text-center text-gray-500">
-            暂无待审核用户
-          </div>
-          <table v-else class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  用户ID
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  用户名
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  邮箱
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  审核码
-                </th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  状态
-                </th>
-                <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  操作
-                </th>
-              </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-              <tr v-for="audit in audits" :key="audit.userId">
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ audit.userId }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                  {{ audit.username }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {{ audit.email }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">
-                  {{ audit.auditCode }}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span 
-                    class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                    :class="{
-                      'bg-green-100 text-green-800': audit.status === 'ACTIVE',
-                      'bg-yellow-100 text-yellow-800': audit.status === 'PENDING',
-                      'bg-red-100 text-red-800': audit.status === 'BANNED',
-                      'bg-gray-100 text-gray-800': audit.isExpired
-                    }"
-                  >
-                    {{ audit.isExpired ? '已过期' : formatStatus(audit.status) }}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                  <button 
-                    v-if="!audit.isExpired && audit.status !== 'ACTIVE'"
-                    @click="approveAudit(audit.userId)" 
-                    class="text-indigo-600 hover:text-indigo-900 font-bold"
-                  >
-                    通过
-                  </button>
-                  <span v-else class="text-gray-400 cursor-not-allowed">
-                    通过
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
         </div>
-      </div>
+      </main>
     </div>
   </div>
 </template>
@@ -97,6 +111,7 @@ import { ref, onMounted } from 'vue';
 import api from '../api';
 import NavBar from '../components/NavBar.vue';
 import { useToastStore } from '../stores/toast';
+import { RotateCw, Loader2, ClipboardList, CheckCircle } from 'lucide-vue-next';
 
 interface Audit {
   userId: number;
@@ -117,7 +132,7 @@ const fetchAudits = async () => {
     const response = await api.get('/users/audits');
     audits.value = response.data;
   } catch (error) {
-    toast.error('Failed to load audits');
+    toast.error('获取审核列表失败');
   } finally {
     loading.value = false;
   }
