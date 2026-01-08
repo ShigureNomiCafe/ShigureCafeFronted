@@ -78,6 +78,9 @@
                         <button @click="openPassword(user)" class="text-orange-600 hover:text-orange-900 bg-orange-50 hover:bg-orange-100 p-1.5 rounded-md transition-colors" title="重置密码">
                           <KeyRound class="h-4 w-4" />
                         </button>
+                        <button v-if="user.username !== auth.user?.username" @click="confirmDelete(user)" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="删除用户">
+                          <Trash2 class="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
                   </tbody>
@@ -189,6 +192,53 @@
           </div>
         </div>
       </transition>
+
+      <!-- Delete Confirmation Modal -->
+      <transition
+        enter-active-class="ease-out duration-300"
+        enter-from-class="opacity-0"
+        enter-to-class="opacity-100"
+        leave-active-class="ease-in duration-200"
+        leave-from-class="opacity-100"
+        leave-to-class="opacity-0"
+      >
+        <div v-if="showDeleteModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+          <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+             <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" aria-hidden="true" @click="showDeleteModal = false"></div>
+             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+             <transition
+              enter-active-class="ease-out duration-300"
+              enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+              enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+              leave-active-class="ease-in duration-200"
+              leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+              leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+            >
+              <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div class="sm:flex sm:items-start">
+                    <div class="mx-auto flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                      <Trash2 class="h-6 w-6 text-red-600" />
+                    </div>
+                    <div class="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                      <h3 class="text-lg leading-6 font-bold text-gray-900" id="modal-title">删除用户</h3>
+                      <div class="mt-2">
+                        <p class="text-sm text-gray-500">
+                          您确定要删除用户 <span class="font-bold text-gray-900">{{ selectedUser?.username }}</span> 吗？此操作不可撤销，该用户的所有数据将被永久移除。
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button @click="handleDelete" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm transition-colors">确认删除</button>
+                  <button @click="showDeleteModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">取消</button>
+                </div>
+              </div>
+             </transition>
+          </div>
+        </div>
+      </transition>
     </div>
   </div>
 </template>
@@ -198,7 +248,8 @@ import { ref, onMounted } from 'vue';
 import NavBar from '../components/NavBar.vue';
 import api from '../api';
 import { useToastStore } from '../stores/toast';
-import { Edit2, KeyRound, RotateCw, Loader2, Users, UserCog } from 'lucide-vue-next';
+import { useAuthStore } from '../stores/auth';
+import { Edit2, KeyRound, RotateCw, Loader2, Users, UserCog, Trash2 } from 'lucide-vue-next';
 
 interface User {
   username: string;
@@ -210,9 +261,11 @@ interface User {
 const users = ref<User[]>([]);
 const showEditModal = ref(false);
 const showPasswordModal = ref(false);
+const showDeleteModal = ref(false);
 const selectedUser = ref<User | null>(null);
 const loading = ref(false);
 const toast = useToastStore();
+const auth = useAuthStore();
 
 const editForm = ref({
   email: '',
@@ -308,6 +361,24 @@ const savePassword = async () => {
     closePassword();
   } catch (error) {
     toast.error('重置密码失败');
+    console.error(error);
+  }
+};
+
+const confirmDelete = (user: User) => {
+  selectedUser.value = user;
+  showDeleteModal.value = true;
+};
+
+const handleDelete = async () => {
+  if (!selectedUser.value) return;
+  try {
+    await api.delete(`/users/${selectedUser.value.username}`);
+    toast.success('用户已删除');
+    showDeleteModal.value = false;
+    fetchUsers();
+  } catch (error) {
+    toast.error('删除用户失败');
     console.error(error);
   }
 };
