@@ -39,7 +39,8 @@
                       <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户 / 昵称</th>
                       <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">电子邮箱</th>
                       <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色</th>
-                       <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">双重验证</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
                       <th scope="col" class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
                     </tr>
                   </thead>
@@ -60,6 +61,14 @@
                       <td class="px-6 py-4 whitespace-nowrap">
                         <span :class="roleClass(user.role)" class="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full">
                           {{ user.role }}
+                        </span>
+                      </td>
+                      <td class="px-6 py-4 whitespace-nowrap">
+                        <span :class="[
+                          'px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full',
+                          user.twoFactorEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                        ]">
+                          {{ user.twoFactorEnabled ? '已开启' : '未开启' }}
                         </span>
                       </td>
                        <td class="px-6 py-4 whitespace-nowrap">
@@ -312,6 +321,7 @@ interface User {
   email: string;
   role: string;
   status: string;
+  twoFactorEnabled: boolean;
 }
 
 const users = ref<User[]>([]);
@@ -344,7 +354,7 @@ const fetchUsers = async () => {
   loading.value = true;
   const minTimer = new Promise(resolve => setTimeout(resolve, 600));
   try {
-    const data: any = await api.get('/users');
+    const data = await api.get<User[]>('/users');
     users.value = data;
     await minTimer;
   } catch (error: any) {

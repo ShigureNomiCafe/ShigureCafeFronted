@@ -97,6 +97,33 @@
               </div>
             </div>
           </div>
+
+          <!-- 2FA Section -->
+          <div class="px-4 sm:px-0 animate-[slide-up_0.5s_ease-out_0.6s_both]">
+            <div class="bg-white shadow-lg rounded-2xl overflow-hidden border border-gray-100">
+              <div class="px-6 py-6 border-b border-gray-100 bg-gray-50/50">
+                <h3 class="text-xl font-bold text-gray-900">双重验证 (2FA)</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">开启后，登录时需要输入发送至邮箱的验证码，为您的账号提供额外保护。</p>
+              </div>
+              <div class="p-6">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center space-x-3">
+                    <div :class="[auth.user?.twoFactorEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700', 'px-3 py-1 rounded-full text-xs font-bold transition-colors duration-300']">
+                      {{ auth.user?.twoFactorEnabled ? '已开启' : '未开启' }}
+                    </div>
+                    <span class="text-sm text-gray-600">双重验证状态</span>
+                  </div>
+                  <button 
+                    @click="handleToggle2FA" 
+                    :disabled="toggleLoading"
+                    :class="[auth.user?.twoFactorEnabled ? 'bg-red-50 text-red-700 border-red-200 hover:bg-red-100' : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100', 'inline-flex items-center px-4 py-2 border rounded-xl text-sm font-bold transition-all duration-200 disabled:opacity-50']"
+                  >
+                    {{ toggleLoading ? '处理中...' : (auth.user?.twoFactorEnabled ? '关闭双重验证' : '开启双重验证') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -213,6 +240,20 @@ const newEmailForm = ref({ newEmail: '', verificationCode: '' });
 const emailLoading = ref(false);
 const sending = ref(false);
 const countdown = ref(0);
+const toggleLoading = ref(false);
+
+const handleToggle2FA = async () => {
+  toggleLoading.value = true;
+  try {
+    const newState = !auth.user?.twoFactorEnabled;
+    await auth.toggleTwoFactor(newState);
+    toastStore.success(newState ? '开启成功' : '关闭成功', newState ? '双重验证已成功开启。' : '双重验证已关闭。');
+  } catch (e: any) {
+    toastStore.error('操作失败', e.message || '系统异常，请稍后重试');
+  } finally {
+    toggleLoading.value = false;
+  }
+};
 
 const sendCode = async () => {
     if (!newEmailForm.value.newEmail) {

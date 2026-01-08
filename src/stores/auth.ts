@@ -8,6 +8,7 @@ interface User {
   email: string;
   role: string;
   status: string;
+  twoFactorEnabled: boolean;
 }
 
 interface JwtPayload {
@@ -16,17 +17,64 @@ interface JwtPayload {
   iat: number;
 }
 
+interface LoginResponse {
+  token: string | null;
+  twoFactorRequired: boolean;
+  email: string | null;
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => ({
     token: localStorage.getItem('token') || null,
     user: null as User | null,
+    twoFactorRequired: false,
+    twoFactorEmail: null as string | null,
+    pendingUsername: null as string | null,
   }),
   actions: {
     async login(credentials: any) {
-      const response: any = await api.post('/auth/token', credentials);
+      const response = await api.post<LoginResponse>('/auth/token', credentials);
+      if (response.twoFactorRequired) {
+        this.twoFactorRequired = true;
+        this.twoFactorEmail = response.email;
+        this.pendingUsername = credentials.username;
+        return { twoFactorRequired: true };
+      }
       this.token = response.token;
-      localStorage.setItem('token', response.token);
-      await this.fetchCurrentUser();
+      if (this.token) {
+        localStorage.setItem('token', this.token);
+        await this.fetchCurrentUser();
+      }
+      return { twoFactorRequired: false };
+    },
+    async verify2FA(code: string) {
+      if (!this.pendingUsername) return;
+      const response = await api.post<LoginResponse>('/auth/2fa/verify', {
+        username: this.pendingUsername,
+        code: code,
+      });
+      this.token = response.token;
+      if (this.token) {
+        localStorage.setItem('token', this.token);
+        this.twoFactorRequired = false;
+        this.twoFactorEmail = null;
+        this.pendingUsername = null;
+        await this.fetchCurrentUser();
+      }
+    },
+    async toggleTwoFactor(enabled: boolean) {
+      if (!this.user) return;
+      await api.put(`/users/${this.user.username}/2fa`, { enabled });
+      if (this.user) {
+        this.user.twoFactorEnabled = enabled;
+      }
+    },
+    async send2FACode() {
+      if (!this.twoFactorEmail) return;
+      await api.post('/auth/verification-codes', {
+        email: this.twoFactorEmail,
+        type: '2FA',
+      });
     },
     async fetchCurrentUser() {
       if (!this.token) return;
