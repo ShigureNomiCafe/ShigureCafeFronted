@@ -119,7 +119,7 @@
                    </div>
                    <div>
                       <h4 class="text-lg font-bold text-gray-900">系统升级通知</h4>
-                      <p class="mt-1 text-gray-600">欢迎使用全新的 Shigure Cafe 用户管理系统。我们对界面进行了全面的现代化升级，希望您喜欢！</p>
+                      <p class="mt-1 text-gray-600">欢迎使用全新的 猫咖 用户管理系统。我们对界面进行了全面的现代化升级，希望您喜欢！</p>
                       <p class="mt-2 text-sm text-gray-500">{{ new Date().toLocaleDateString() }}</p>
                    </div>
                 </div>

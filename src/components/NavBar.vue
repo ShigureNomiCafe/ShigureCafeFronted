@@ -4,7 +4,7 @@
               <div class="flex justify-between h-16">
                 <div class="flex items-center">
                   <div class="flex-shrink-0 flex items-center transform hover:scale-105 transition-transform duration-200 cursor-pointer" @click="$router.push('/dashboard')">
-                    <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">Shigure Cafe</h1>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">猫咖</h1>
                   </div>
                   <div class="hidden sm:ml-6 sm:flex sm:space-x-8">
                     <router-link

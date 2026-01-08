@@ -98,7 +98,11 @@
                       <div class="flex rounded-xl shadow-sm">
                           <input v-model="newEmailForm.newEmail" type="email" class="flex-1 min-w-0 block w-full px-4 py-2 rounded-l-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm border" placeholder="请输入新邮箱">
                           <button @click="sendCode" :disabled="sending || countdown > 0" class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-xl bg-gray-50 text-gray-500 text-sm font-medium hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 transition-colors w-32 justify-center">
-                              {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+                              <svg v-if="sending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              {{ countdown > 0 ? `${countdown}s` : (sending ? '发送中...' : '获取验证码') }}
                           </button>
                       </div>
                   </div>
@@ -158,13 +162,13 @@ const sendCode = async () => {
     try {
         await api.post('/auth/verification-codes', { email: newEmailForm.value.newEmail, type: 'UPDATE_EMAIL' });
         
-        toastStore.success('发送成功', '验证码已发送至您的新邮箱，请注意查收。');
+        sending.value = false;
+        toastStore.success('发送成功', '验证码已发送至您的邮箱，请注意查收。');
         countdown.value = 60;
         const timer = setInterval(() => {
             countdown.value--;
             if (countdown.value <= 0) {
                 clearInterval(timer);
-                sending.value = false; // Re-enable button after countdown
             }
         }, 1000);
     } catch (e: any) {

@@ -12,8 +12,12 @@
              <label for="email" class="block text-sm font-medium text-gray-700 mb-1 ml-1">电子邮箱</label>
              <div class="flex space-x-2">
                 <input v-model="form.email" id="email" type="email" required class="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200 bg-white/50 focus:bg-white" placeholder="your@email.com" />
-                <button @click="sendCode" type="button" :disabled="sending || countdown > 0" class="whitespace-nowrap px-4 py-3 text-sm font-bold text-blue-600 border border-blue-200 bg-blue-50/50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 w-32 shadow-sm">
-                  {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+                <button @click="sendCode" type="button" :disabled="sending || countdown > 0" class="whitespace-nowrap px-4 py-3 text-sm font-bold text-blue-600 border border-blue-200 bg-blue-50/50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 w-32 shadow-sm flex items-center justify-center">
+                  <svg v-if="sending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  {{ countdown > 0 ? `${countdown}s` : (sending ? '发送中...' : '获取验证码') }}
                 </button>
              </div>
           </div>
@@ -21,7 +25,7 @@
           <!-- 验证码 -->
           <div class="group">
             <label for="code" class="block text-sm font-medium text-gray-700 mb-1 ml-1">验证码</label>
-            <input v-model="form.verificationCode" id="code" type="text" required class="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200 bg-white/50 focus:bg-white" placeholder="请输入验证码" />
+            <input v-model="form.verificationCode" id="code" type="text" autocomplete="one-time-code" required class="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200 bg-white/50 focus:bg-white" placeholder="请输入验证码" />
           </div>
           
           <!-- 新密码 -->
@@ -86,13 +90,13 @@ const sendCode = async () => {
   try {
     await api.post('/auth/verification-codes', { email: form.value.email, type: 'RESET_PASSWORD' });
 
+    sending.value = false;
     toastStore.success('发送成功', '验证码已发送至您的邮箱，请注意查收。');
     countdown.value = 60;
     const timer = setInterval(() => {
       countdown.value--;
       if (countdown.value <= 0) {
         clearInterval(timer);
-        sending.value = false;
       }
     }, 1000);
   } catch (e: any) {

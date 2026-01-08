@@ -29,7 +29,7 @@
       <div v-else class="animate-[fade_0.5s_ease-out]">
         <div class="text-center">
           <h2 class="text-3xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600">创建新账号</h2>
-          <p class="mt-2 text-sm text-gray-600">加入 Shigure Cafe，开启您的旅程</p>
+          <p class="mt-2 text-sm text-gray-600">加入 猫咖，开启您的旅程</p>
         </div>
         <form class="mt-8 space-y-5" @submit.prevent="handleRegister">
           <div class="space-y-4">
@@ -42,8 +42,12 @@
                <label for="email" class="block text-sm font-medium text-gray-700 mb-1 ml-1">电子邮箱</label>
                <div class="flex space-x-2">
                   <input v-model.trim="form.email" id="email" name="email" autocomplete="email" type="email" required class="appearance-none rounded-xl block w-full px-4 py-3 border border-gray-200 placeholder-gray-400 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200 bg-white/50 focus:bg-white" placeholder="your@email.com" />
-                  <button @click="sendCode" type="button" :disabled="sending || countdown > 0" class="whitespace-nowrap px-4 py-3 text-sm font-bold text-blue-600 border border-blue-200 bg-blue-50/50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 w-32 shadow-sm">
-                    {{ countdown > 0 ? `${countdown}s` : '获取验证码' }}
+                  <button @click="sendCode" type="button" :disabled="sending || countdown > 0" class="whitespace-nowrap px-4 py-3 text-sm font-bold text-blue-600 border border-blue-200 bg-blue-50/50 rounded-xl hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 w-32 shadow-sm flex items-center justify-center">
+                    <svg v-if="sending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    {{ countdown > 0 ? `${countdown}s` : (sending ? '发送中...' : '获取验证码') }}
                   </button>
                </div>
             </div>
@@ -116,13 +120,13 @@ const sendCode = async () => {
   try {
     await api.post('/auth/verification-codes', { email: form.email, type: 'REGISTER' });
     
+    sending.value = false;
     toastStore.success('发送成功', '验证码已发送至您的邮箱，请注意查收。');
     countdown.value = 60;
     const timer = setInterval(() => {
       countdown.value--;
       if (countdown.value <= 0) {
         clearInterval(timer);
-        sending.value = false;
       }
     }, 1000);
   } catch (e: any) {
