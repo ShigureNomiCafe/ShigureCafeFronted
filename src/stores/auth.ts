@@ -8,7 +8,8 @@ interface User {
   email: string;
   role: string;
   status: string;
-  twoFactorEnabled: boolean;
+  email2faEnabled: boolean;
+  totpEnabled: boolean;
 }
 
 interface JwtPayload {
@@ -20,6 +21,8 @@ interface JwtPayload {
 interface LoginResponse {
   token: string | null;
   twoFactorRequired: boolean;
+  hasTotp: boolean;
+  hasEmail2fa: boolean;
   email: string | null;
 }
 
@@ -28,6 +31,8 @@ export const useAuthStore = defineStore('auth', {
     token: localStorage.getItem('token') || null,
     user: null as User | null,
     twoFactorRequired: false,
+    hasTotp: false,
+    hasEmail2fa: false,
     twoFactorEmail: null as string | null,
     pendingUsername: null as string | null,
   }),
@@ -36,6 +41,8 @@ export const useAuthStore = defineStore('auth', {
       const response = await api.post<LoginResponse>('/auth/token', credentials);
       if (response.twoFactorRequired) {
         this.twoFactorRequired = true;
+        this.hasTotp = response.hasTotp;
+        this.hasEmail2fa = response.hasEmail2fa;
         this.twoFactorEmail = response.email;
         this.pendingUsername = credentials.username;
         return { twoFactorRequired: true };
@@ -57,16 +64,18 @@ export const useAuthStore = defineStore('auth', {
       if (this.token) {
         localStorage.setItem('token', this.token);
         this.twoFactorRequired = false;
+        this.hasTotp = false;
+        this.hasEmail2fa = false;
         this.twoFactorEmail = null;
         this.pendingUsername = null;
         await this.fetchCurrentUser();
       }
     },
-    async toggleTwoFactor(enabled: boolean) {
+    async toggleTwoFactor(enabled: boolean, code?: string) {
       if (!this.user) return;
-      await api.put(`/users/${this.user.username}/2fa`, { enabled });
+      await api.put(`/users/${this.user.username}/2fa`, { enabled, code });
       if (this.user) {
-        this.user.twoFactorEnabled = enabled;
+        this.user.email2faEnabled = enabled;
       }
     },
     async send2FACode() {

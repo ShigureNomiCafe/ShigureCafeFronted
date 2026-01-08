@@ -6,7 +6,10 @@
           {{ show2FA ? '二次验证' : '欢迎回来' }}
         </h2>
         <p class="mt-2 text-sm text-gray-600">
-          {{ show2FA ? `请输入发送至 ${auth.twoFactorEmail} 的验证码` : '请登录您的账号' }}
+          <template v-if="show2FA">
+            {{ useEmail ? `请输入发送至 ${auth.twoFactorEmail} 的验证码` : '请输入 Authenticator App 中的验证码' }}
+          </template>
+          <template v-else>请登录您的账号</template>
         </p>
       </div>
       
@@ -54,13 +57,18 @@
                 @keydown="handleDigitKeyDown(index, $event)"
               />
             </div>
-            <div class="mt-4 flex justify-center">
+            <div v-if="useEmail" class="mt-4 flex justify-center">
               <button @click="send2FACode" type="button" :disabled="sending || countdown > 0" class="whitespace-nowrap px-4 py-2.5 text-sm font-bold text-blue-600 border border-blue-200 bg-blue-50/50 rounded-xl hover:bg-blue-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 min-w-[140px] flex items-center justify-center">
                 <svg v-if="sending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                   <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                   <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                 </svg>
                 {{ countdown > 0 ? `${countdown}s 后重新获取` : (sending ? '发送中...' : '获取验证码') }}
+              </button>
+            </div>
+            <div v-if="auth.hasTotp && auth.hasEmail2fa" class="mt-4 flex justify-center">
+              <button @click="toggleMethod" type="button" class="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
+                {{ useEmail ? '使用身份验证器验证' : '使用邮箱验证码验证' }}
               </button>
             </div>
           </div>
@@ -106,12 +114,21 @@ const digitInputs = ref<HTMLInputElement[]>([]);
 const twoFactorCode = computed(() => codeDigits.value.join(''));
 
 const show2FA = ref(false);
+const useEmail = ref(false);
 const loading = ref(false);
 const sending = ref(false);
 const countdown = ref(0);
 const auth = useAuthStore();
 const router = useRouter();
 const toastStore = useToastStore();
+
+const toggleMethod = () => {
+  useEmail.value = !useEmail.value;
+  codeDigits.value = ['', '', '', '', '', ''];
+  if (useEmail.value) {
+    send2FACode();
+  }
+};
 
 const handleDigitInput = (index: number, e: Event) => {
   const input = e.target as HTMLInputElement;
@@ -145,7 +162,13 @@ const handleLogin = async () => {
     const result = await auth.login(form.value);
     if (result.twoFactorRequired) {
       show2FA.value = true;
-      send2FACode();
+      // Prioritize TOTP if available
+      if (auth.hasTotp) {
+        useEmail.value = false;
+      } else {
+        useEmail.value = true;
+        send2FACode();
+      }
     } else {
       router.push('/dashboard');
     }

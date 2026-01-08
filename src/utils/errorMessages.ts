@@ -27,6 +27,7 @@ export const ERROR_MESSAGES: Record<string, string> = {
     'INVALID_AUDIT_CODE': '无效的审核码',
     'AUDIT_CODE_EXPIRED': '审核码已过期',
     'RATE_LIMIT_EXCEEDED': '操作过于频繁，请稍后再试',
+    'INVALID_2FA_CODE': '双重验证码错误',
     
     // System
     'INTERNAL_SERVER_ERROR': '服务器内部错误',
