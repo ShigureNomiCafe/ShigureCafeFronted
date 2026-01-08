@@ -74,110 +74,117 @@
     </div>
 
     <!-- Email Update Modal -->
-    <transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div v-if="showEmailModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <!-- Background overlay -->
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" aria-hidden="true" @click="showEmailModal = false"></div>
+    <div v-if="showEmailModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Backdrop Transition -->
+        <transition
+          enter-active-class="ease-out duration-200"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="ease-in duration-150"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+          appear
+        >
+          <div class="fixed inset-0 bg-black/20 backdrop-blur-md" aria-hidden="true" @click="showEmailModal = false"></div>
+        </transition>
 
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-          
-          <transition
-            enter-active-class="ease-out duration-300"
-            enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-            leave-active-class="ease-in duration-200"
-            leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-            leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-          >
-            <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 class="text-xl leading-6 font-bold text-gray-900" id="modal-title">修改绑定邮箱</h3>
-                <div class="mt-4 space-y-4">
-                  <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1">新邮箱地址</label>
-                      <div class="flex rounded-xl shadow-sm">
-                          <input v-model="newEmailForm.newEmail" type="email" class="flex-1 min-w-0 block w-full px-4 py-2 rounded-l-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm border" placeholder="请输入新邮箱">
-                          <button @click="sendCode" :disabled="sending || countdown > 0" class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-xl bg-gray-50 text-gray-500 text-sm font-medium hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 transition-colors w-32 justify-center">
-                              <svg v-if="sending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                              </svg>
-                              {{ countdown > 0 ? `${countdown}s` : (sending ? '发送中...' : '获取验证码') }}
-                          </button>
-                      </div>
-                  </div>
-                  <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1">验证码</label>
-                      <input v-model="newEmailForm.verificationCode" type="text" class="block w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="请输入验证码">
-                  </div>
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+        
+        <transition
+          enter-active-class="ease-out duration-300"
+          enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+          leave-active-class="ease-in duration-200"
+          leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+          leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          appear
+        >
+          <div class="relative inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all w-full sm:my-8 sm:align-middle sm:max-w-xl">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <h3 class="text-xl leading-6 font-bold text-gray-900" id="modal-title">修改绑定邮箱</h3>
+              <div class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">新邮箱地址</label>
+                    <div class="flex rounded-xl shadow-sm">
+                        <input v-model="newEmailForm.newEmail" type="email" class="flex-1 min-w-0 block w-full px-4 py-2 rounded-l-xl border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm border" placeholder="请输入新邮箱">
+                        <button @click="sendCode" :disabled="sending || countdown > 0" class="inline-flex items-center px-4 py-2 border border-l-0 border-gray-300 rounded-r-xl bg-gray-50 text-gray-500 text-sm font-medium hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 transition-colors w-32 justify-center">
+                            <svg v-if="sending" class="animate-spin -ml-1 mr-2 h-4 w-4 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            {{ countdown > 0 ? `${countdown}s` : (sending ? '发送中...' : '获取验证码') }}
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">验证码</label>
+                    <input v-model="newEmailForm.verificationCode" type="text" class="block w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="请输入验证码">
                 </div>
               </div>
-              <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button @click="handleUpdateEmail" :disabled="loading" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors">
-                  {{ loading ? '保存中...' : '保存修改' }}
-                </button>
-                <button @click="showEmailModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
-                  取消
-                </button>
-              </div>
             </div>
-          </transition>
-        </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button @click="handleUpdateEmail" :disabled="loading" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors">
+                {{ loading ? '保存中...' : '保存修改' }}
+              </button>
+              <button @click="showEmailModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                取消
+              </button>
+            </div>
+          </div>
+        </transition>
       </div>
-    </transition>
+    </div>
 
     <!-- Nickname Update Modal -->
-    <transition
-      enter-active-class="ease-out duration-300"
-      enter-from-class="opacity-0"
-      enter-to-class="opacity-100"
-      leave-active-class="ease-in duration-200"
-      leave-from-class="opacity-100"
-      leave-to-class="opacity-0"
-    >
-      <div v-if="showNicknameModal" class="fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-          <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity backdrop-blur-sm" aria-hidden="true" @click="showNicknameModal = false"></div>
-          <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
-          <transition
-            enter-active-class="ease-out duration-300"
-            enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-            enter-to-class="opacity-100 translate-y-0 sm:scale-100"
-            leave-active-class="ease-in duration-200"
-            leave-from-class="opacity-100 translate-y-0 sm:scale-100"
-            leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-          >
-            <div class="relative inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
-              <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
-                <h3 class="text-xl leading-6 font-bold text-gray-900" id="modal-title">修改昵称</h3>
-                <div class="mt-4 space-y-4">
-                  <div>
-                      <label class="block text-sm font-medium text-gray-700 mb-1">新昵称</label>
-                      <input v-model="nicknameForm.nickname" type="text" class="block w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="请输入新昵称">
-                  </div>
+    <div v-if="showNicknameModal" class="fixed inset-0 z-50 overflow-y-auto">
+      <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <!-- Backdrop Transition -->
+        <transition
+          enter-active-class="ease-out duration-200"
+          enter-from-class="opacity-0"
+          enter-to-class="opacity-100"
+          leave-active-class="ease-in duration-150"
+          leave-from-class="opacity-100"
+          leave-to-class="opacity-0"
+          appear
+        >
+          <div class="fixed inset-0 bg-black/20 backdrop-blur-md" aria-hidden="true" @click="showNicknameModal = false"></div>
+        </transition>
+
+        <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+        <transition
+          enter-active-class="ease-out duration-300"
+          enter-from-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          enter-to-class="opacity-100 translate-y-0 sm:scale-100"
+          leave-active-class="ease-in duration-200"
+          leave-from-class="opacity-100 translate-y-0 sm:scale-100"
+          leave-to-class="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+          appear
+        >
+          <div class="relative inline-block align-middle bg-white rounded-2xl text-left overflow-hidden shadow-xl transform transition-all w-full sm:my-8 sm:align-middle sm:max-w-xl">
+            <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+              <h3 class="text-xl leading-6 font-bold text-gray-900" id="modal-title">修改昵称</h3>
+              <div class="mt-4 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">新昵称</label>
+                    <input v-model="nicknameForm.nickname" type="text" class="block w-full px-4 py-2 border border-gray-300 rounded-xl shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm" placeholder="请输入新昵称">
                 </div>
               </div>
-              <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
-                <button @click="handleUpdateNickname" :disabled="nicknameLoading" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors">
-                  {{ nicknameLoading ? '保存中...' : '保存修改' }}
-                </button>
-                <button @click="showNicknameModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
-                  取消
-                </button>
-              </div>
             </div>
-          </transition>
-        </div>
+            <div class="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+              <button @click="handleUpdateNickname" :disabled="nicknameLoading" type="button" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2 bg-blue-600 text-base font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 transition-colors">
+                {{ nicknameLoading ? '保存中...' : '保存修改' }}
+              </button>
+              <button @click="showNicknameModal = false" type="button" class="mt-3 w-full inline-flex justify-center rounded-xl border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm transition-colors">
+                取消
+              </button>
+            </div>
+          </div>
+        </transition>
       </div>
-    </transition>
+    </div>
   </div>
 </template>
 

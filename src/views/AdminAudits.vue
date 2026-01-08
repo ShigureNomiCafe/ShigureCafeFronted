@@ -4,28 +4,69 @@
     
     <div class="py-10 transition-all duration-500 ease-in-out">
       <header>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-[slide-up_0.5s_ease-out]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+          <h1 
+            v-if="!isSearchExpanded" 
+            class="text-2xl sm:text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-[slide-up_0.5s_ease-out] truncate mr-4"
+          >
             注册审核
           </h1>
-          <div class="flex items-center space-x-4 animate-[slide-up_0.5s_ease-out_0.1s_both]">
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search class="h-4 w-4 text-gray-400" />
-              </div>
-              <input
-                v-model="searchQuery"
-                type="text"
-                placeholder="搜索审核码/用户名..."
-                class="block w-64 pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200"
-              />
-            </div>
-            <button 
-              @click="fetchAudits" 
-              class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors"
+          
+          <div 
+            class="flex items-center transition-all duration-300 ease-in-out" 
+            :class="isSearchExpanded ? 'flex-1 justify-end' : 'space-x-2 sm:space-x-4'"
+          >
+            <!-- Search Box -->
+            <div 
+              class="relative flex items-center transition-all duration-300 ease-in-out" 
+              :class="isSearchExpanded ? 'w-full' : 'w-auto'"
             >
-              <RotateCw class="h-4 w-4 mr-2" :class="{ 'animate-spin': loading }" />
-              刷新列表
+              <!-- Mobile Search Toggle -->
+              <button 
+                @click="isSearchExpanded = true"
+                v-if="!isSearchExpanded"
+                class="sm:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors animate-[slide-up_0.5s_ease-out_0.1s_both]"
+              >
+                <Search class="h-5 w-5" />
+              </button>
+
+              <!-- Search Input Container -->
+              <div 
+                class="relative transition-all duration-300 ease-in-out"
+                :class="[
+                  isSearchExpanded ? 'w-full opacity-100' : 'hidden sm:block sm:w-64 opacity-100'
+                ]"
+              >
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search class="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  v-model="searchQuery"
+                  ref="searchInput"
+                  type="text"
+                  placeholder="搜索审核码/用户名..."
+                  class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200"
+                  @keyup.esc="isSearchExpanded = false"
+                />
+                <!-- Mobile Close button -->
+                <button 
+                  v-if="isSearchExpanded"
+                  @click="isSearchExpanded = false"
+                  class="sm:hidden absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <X class="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Refresh Button -->
+            <button 
+              v-show="!isSearchExpanded"
+              @click="fetchAudits" 
+              class="inline-flex items-center px-3 py-2 sm:px-4 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors animate-[slide-up_0.5s_ease-out_0.1s_both]"
+            >
+              <RotateCw class="h-4 w-4 sm:mr-2" :class="{ 'animate-[spin_0.6s_linear_infinite]': loading }" />
+              <span class="hidden sm:inline">刷新列表</span>
             </button>
           </div>
         </div>
@@ -119,11 +160,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import api from '../api';
 import NavBar from '../components/NavBar.vue';
 import { useToastStore } from '../stores/toast';
-import { RotateCw, Loader2, ClipboardList, CheckCircle, Search } from 'lucide-vue-next';
+import { RotateCw, Loader2, ClipboardList, CheckCircle, Search, X } from 'lucide-vue-next';
 
 interface Audit {
   username: string;
@@ -137,7 +178,17 @@ interface Audit {
 const audits = ref<Audit[]>([]);
 const loading = ref(true);
 const searchQuery = ref('');
+const isSearchExpanded = ref(false);
+const searchInput = ref<HTMLInputElement | null>(null);
 const toast = useToastStore();
+
+watch(isSearchExpanded, (val) => {
+  if (val) {
+    nextTick(() => {
+      searchInput.value?.focus();
+    });
+  }
+});
 
 const filteredAudits = computed(() => {
   if (!searchQuery.value) return audits.value;
@@ -152,6 +203,7 @@ const filteredAudits = computed(() => {
 
 const fetchAudits = async () => {
   loading.value = true;
+  const minTimer = new Promise(resolve => setTimeout(resolve, 600));
   try {
     const codesResponse = await api.get('/registrations');
     const codes: string[] = codesResponse.data;
@@ -160,6 +212,7 @@ const fetchAudits = async () => {
     const detailsResponses = await Promise.all(detailsPromises);
     
     audits.value = detailsResponses.map(res => res.data);
+    await minTimer;
   } catch (error) {
     toast.error('获取审核列表失败');
   } finally {
