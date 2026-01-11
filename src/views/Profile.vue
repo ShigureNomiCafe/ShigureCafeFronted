@@ -34,10 +34,10 @@
                   </div>
 
                   <div class="sm:col-span-1">
-                    <dt class="text-sm font-medium text-gray-500">权限等级</dt>
+                    <dt class="text-sm font-medium text-gray-500">用户角色</dt>
                     <dd class="mt-1 text-sm text-gray-900">
                       <span class="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full bg-blue-100 text-blue-800">
-                        {{ auth.user?.role }}
+                        {{ formatRole(auth.user?.role) }}
                       </span>
                     </dd>
                   </div>
@@ -58,9 +58,7 @@
                         auth.user?.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
                         'bg-red-100 text-red-800'
                       ]">
-                        {{ auth.user?.status === 'ACTIVE' ? '正常' : 
-                           auth.user?.status === 'PENDING' ? '待审核' : 
-                           auth.user?.status === 'BANNED' ? '封禁' : auth.user?.status }}
+                        {{ formatStatus(auth.user?.status) }}
                       </span>
                     </dd>
                   </div>
@@ -130,6 +128,7 @@ import { useAuthStore } from '../stores/auth';
 import { useToastStore } from '../stores/toast';
 import NavBar from '../components/NavBar.vue';
 import api from '../api';
+import { formatStatus, formatRole } from '../utils/formatters';
 
 const auth = useAuthStore();
 const toastStore = useToastStore();

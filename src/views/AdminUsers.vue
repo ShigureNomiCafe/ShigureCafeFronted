@@ -38,7 +38,7 @@
                     <tr>
                       <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户 / 昵称</th>
                       <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">电子邮箱</th>
-                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">角色</th>
+                      <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户角色</th>
                       <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">双重验证</th>
                       <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
                       <th scope="col" class="px-6 py-4 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">操作</th>
@@ -60,7 +60,7 @@
                       <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         <span :class="roleClass(user.role)" class="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full">
-                          {{ user.role }}
+                          {{ formatRole(user.role) }}
                         </span>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
@@ -145,14 +145,14 @@
                         <input v-model="editForm.email" type="email" class="appearance-none rounded-xl relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm">
                       </div>
                       <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-1">权限等级</label>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">用户角色</label>
                         <div class="relative">
-                          <button 
+                            <button 
                             @click="showRoleDropdown = !showRoleDropdown"
                             type="button"
                             class="relative w-full bg-white/50 border border-gray-300 rounded-xl shadow-sm pl-4 pr-10 py-2.5 text-left cursor-default focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 sm:text-sm transition-all duration-200"
                           >
-                            <span class="block truncate font-medium text-gray-900">{{ editForm.role }}</span>
+                            <span class="block truncate font-medium text-gray-900">{{ formatRole(editForm.role) }}</span>
                             <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
                               <ChevronDown class="h-4 w-4 text-gray-400 transition-transform duration-300" :class="{ 'rotate-180': showRoleDropdown }" />
                             </span>
@@ -174,7 +174,7 @@
                                 class="cursor-pointer select-none relative py-2.5 pl-4 pr-9 hover:bg-blue-50 transition-colors"
                                 :class="editForm.role === role ? 'text-blue-600 bg-blue-50/50' : 'text-gray-900'"
                               >
-                                <span class="block truncate" :class="{ 'font-bold': editForm.role === role }">{{ role }}</span>
+                                <span class="block truncate" :class="{ 'font-bold': editForm.role === role }">{{ formatRole(role) }}</span>
                                 <span v-if="editForm.role === role" class="absolute inset-y-0 right-0 flex items-center pr-4">
                                   <Check class="h-4 w-4" />
                                 </span>
@@ -314,6 +314,7 @@ import api from '../api';
 import { useToastStore } from '../stores/toast';
 import { useAuthStore } from '../stores/auth';
 import { Edit2, KeyRound, RotateCw, Loader2, Users, UserCog, Trash2, ChevronDown, Check } from 'lucide-vue-next';
+import { formatStatus, formatRole } from '../utils/formatters';
 
 interface User {
   username: string;
@@ -368,15 +369,6 @@ const roleClass = (role: string) => {
   return role === 'ADMIN' 
     ? 'bg-purple-100 text-purple-800' 
     : 'bg-blue-100 text-blue-800';
-};
-
-const formatStatus = (status: string) => {
-  const map: Record<string, string> = {
-    ACTIVE: '正常',
-    PENDING: '待审核',
-    BANNED: '封禁'
-  };
-  return map[status] || status;
 };
 
 

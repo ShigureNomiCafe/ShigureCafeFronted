@@ -13,8 +13,15 @@
         <div class="text-left bg-white/60 p-6 rounded-xl border border-blue-100 shadow-sm">
           <p class="text-sm font-medium text-gray-700 mb-3">您的账号需要审核。请保存审核码：</p>
           <div class="flex items-center justify-between bg-blue-50/50 p-4 rounded-lg border border-blue-200 group hover:border-blue-300 transition-colors cursor-text">
-            <code class="text-xl font-mono font-bold text-blue-700 select-all tracking-wider">{{ auditCode }}</code>
-            <span class="text-xs text-blue-400 group-hover:text-blue-500">可复制</span>
+            <code class="text-xl font-mono font-bold text-blue-700 select-all tracking-wider break-all mr-2">{{ auditCode }}</code>
+            <button @click="copyAuditCode" class="p-2 hover:bg-blue-100 rounded-lg transition-all text-blue-500 hover:text-blue-700 active:scale-95 flex-shrink-0" title="复制审核码">
+              <svg v-if="!copied" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+              </svg>
+              <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
           </div>
           <p class="text-xs text-gray-500 mt-3 leading-relaxed">
             请将此代码发送给管理员以激活您的账号。未审核的账号无法登录。
@@ -113,6 +120,20 @@ const sending = ref(false);
 const countdown = ref(0);
 const registrationSuccess = ref(false);
 const auditCode = ref('');
+const copied = ref(false);
+
+const copyAuditCode = async () => {
+  try {
+    await navigator.clipboard.writeText(auditCode.value);
+    copied.value = true;
+    toastStore.success('复制成功', '审核码已复制到剪贴板');
+    setTimeout(() => {
+      copied.value = false;
+    }, 2000);
+  } catch (err) {
+    toastStore.error('复制失败', '请手动复制审核码');
+  }
+};
 
 const sendCode = async () => {
   if (!form.email) {

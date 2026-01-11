@@ -117,9 +117,18 @@
                         {{ audit.email }}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
-                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800 font-mono">
-                           {{ audit.auditCode }}
-                         </span>
+                         <div class="flex items-center space-x-2">
+                           <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800 font-mono">
+                             {{ audit.auditCode }}
+                           </span>
+                           <button 
+                             @click="copyToClipboard(audit.auditCode)" 
+                             class="p-1 hover:bg-gray-200 rounded text-gray-400 hover:text-gray-600 transition-colors" 
+                             title="复制审核码"
+                           >
+                             <Copy class="h-3.5 w-3.5" />
+                           </button>
+                         </div>
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap">
                         <span 
@@ -164,7 +173,8 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import api from '../api';
 import NavBar from '../components/NavBar.vue';
 import { useToastStore } from '../stores/toast';
-import { RotateCw, Loader2, ClipboardList, CheckCircle, Search, X } from 'lucide-vue-next';
+import { RotateCw, Loader2, ClipboardList, CheckCircle, Search, X, Copy } from 'lucide-vue-next';
+import { formatStatus } from '../utils/formatters';
 
 interface Audit {
   username: string;
@@ -181,6 +191,15 @@ const searchQuery = ref('');
 const isSearchExpanded = ref(false);
 const searchInput = ref<HTMLInputElement | null>(null);
 const toast = useToastStore();
+
+const copyToClipboard = async (text: string) => {
+  try {
+    await navigator.clipboard.writeText(text);
+    toast.success('复制成功', '审核码已复制到剪贴板');
+  } catch (err) {
+    toast.error('复制失败', '请手动复制');
+  }
+};
 
 watch(isSearchExpanded, (val) => {
   if (val) {
@@ -229,15 +248,6 @@ const approveAudit = async (auditCode: string) => {
   } catch (error: any) {
     toast.error('操作失败', error.message);
   }
-};
-
-const formatStatus = (status: string) => {
-  const map: Record<string, string> = {
-    ACTIVE: '正常',
-    PENDING: '待审核',
-    BANNED: '封禁'
-  };
-  return map[status] || status;
 };
 
 onMounted(() => {
