@@ -2,13 +2,13 @@
   <div class="min-h-screen bg-gray-50">
     <NavBar />
 
-    <div class="py-10 transition-all duration-500 ease-in-out">
+    <div class="py-10">
       <header>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-[slide-up_0.5s_ease-out]">
+          <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
             欢迎回来, <span class="text-indigo-600">{{ auth.user?.nickname || auth.user?.username || '用户' }}</span>
           </h1>
-          <div class="text-sm text-gray-500 animate-[slide-up_0.5s_ease-out_0.1s_both]">
+          <div class="text-sm text-gray-500 animate-slide-up animate-delay-100">
             今天是 {{ new Date().toLocaleDateString() }}
           </div>
         </div>
@@ -18,8 +18,13 @@
           <div class="px-4 sm:px-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <!-- Quick Action Cards -->
-            <div @click="$router.push('/profile')" class="group bg-white overflow-hidden shadow rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 animate-[slide-up_0.5s_ease-out_0.2s_both]">
-              <div class="p-6">
+            <div class="animate-slide-up animate-delay-200">
+              <BaseCard 
+                @click="$router.push('/profile')" 
+                hoverable
+                body-class="p-6"
+                class="h-full"
+              >
                 <div class="flex items-center">
                   <div class="flex-shrink-0 bg-blue-100 rounded-md p-3 group-hover:bg-blue-200 transition-colors">
                     <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -31,16 +36,21 @@
                     <p class="mt-1 text-sm text-gray-500">查看和编辑您的个人资料</p>
                   </div>
                 </div>
-              </div>
-              <div class="bg-gray-50 px-6 py-3">
-                <div class="text-sm">
-                  <span class="font-medium text-blue-600 group-hover:text-blue-500 transition-colors">前往查看 &rarr;</span>
-                </div>
-              </div>
+                <template #footer>
+                  <div class="text-sm">
+                    <span class="font-medium text-blue-600 group-hover:text-blue-500 transition-colors">前往查看 &rarr;</span>
+                  </div>
+                </template>
+              </BaseCard>
             </div>
 
-            <div @click="$router.push('/security')" class="group bg-white overflow-hidden shadow rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 animate-[slide-up_0.5s_ease-out_0.3s_both]">
-              <div class="p-6">
+            <div class="animate-slide-up animate-delay-300">
+              <BaseCard 
+                @click="$router.push('/security')" 
+                hoverable
+                body-class="p-6"
+                class="h-full"
+              >
                 <div class="flex items-center">
                   <div class="flex-shrink-0 bg-green-100 rounded-md p-3 group-hover:bg-green-200 transition-colors">
                     <svg class="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -52,17 +62,22 @@
                     <p class="mt-1 text-sm text-gray-500">修改密码或更新邮箱</p>
                   </div>
                 </div>
-              </div>
-              <div class="bg-gray-50 px-6 py-3">
-                <div class="text-sm">
-                  <span class="font-medium text-green-600 group-hover:text-green-500 transition-colors">前往设置 &rarr;</span>
-                </div>
-              </div>
+                <template #footer>
+                  <div class="text-sm">
+                    <span class="font-medium text-green-600 group-hover:text-green-500 transition-colors">前往设置 &rarr;</span>
+                  </div>
+                </template>
+              </BaseCard>
             </div>
 
             <!-- Admin Cards -->
-            <div v-if="auth.user?.role === 'ADMIN'" @click="$router.push('/admin/users')" class="group bg-white overflow-hidden shadow rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 animate-[slide-up_0.5s_ease-out_0.4s_both]">
-              <div class="p-6">
+            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-400">
+              <BaseCard 
+                @click="$router.push('/admin/users')" 
+                hoverable
+                body-class="p-6"
+                class="h-full"
+              >
                 <div class="flex items-center">
                   <div class="flex-shrink-0 bg-purple-100 rounded-md p-3 group-hover:bg-purple-200 transition-colors">
                     <svg class="h-6 w-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -74,16 +89,21 @@
                     <p class="mt-1 text-sm text-gray-500">管理系统用户和权限</p>
                   </div>
                 </div>
-              </div>
-              <div class="bg-gray-50 px-6 py-3">
-                <div class="text-sm">
-                  <span class="font-medium text-purple-600 group-hover:text-purple-500 transition-colors">进入管理 &rarr;</span>
-                </div>
-              </div>
+                <template #footer>
+                  <div class="text-sm">
+                    <span class="font-medium text-purple-600 group-hover:text-purple-500 transition-colors">进入管理 &rarr;</span>
+                  </div>
+                </template>
+              </BaseCard>
             </div>
 
-             <div v-if="auth.user?.role === 'ADMIN'" @click="$router.push('/admin/audits')" class="group bg-white overflow-hidden shadow rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 animate-[slide-up_0.5s_ease-out_0.5s_both]">
-              <div class="p-6">
+            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-500">
+              <BaseCard 
+                @click="$router.push('/admin/audits')" 
+                hoverable
+                body-class="p-6"
+                class="h-full"
+              >
                 <div class="flex items-center">
                   <div class="flex-shrink-0 bg-orange-100 rounded-md p-3 group-hover:bg-orange-200 transition-colors">
                     <svg class="h-6 w-6 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -95,16 +115,21 @@
                     <p class="mt-1 text-sm text-gray-500">处理用户注册审核请求</p>
                   </div>
                 </div>
-              </div>
-              <div class="bg-gray-50 px-6 py-3">
-                <div class="text-sm">
-                  <span class="font-medium text-orange-600 group-hover:text-orange-500 transition-colors">处理审核 &rarr;</span>
-                </div>
-              </div>
+                <template #footer>
+                  <div class="text-sm">
+                    <span class="font-medium text-orange-600 group-hover:text-orange-500 transition-colors">处理审核 &rarr;</span>
+                  </div>
+                </template>
+              </BaseCard>
             </div>
 
-            <div v-if="auth.user?.role === 'ADMIN'" @click="$router.push('/admin/notices')" class="group bg-white overflow-hidden shadow rounded-2xl cursor-pointer hover:shadow-lg transition-all duration-300 transform hover:-translate-y-1 animate-[slide-up_0.5s_ease-out_0.6s_both]">
-              <div class="p-6">
+            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-600">
+              <BaseCard 
+                @click="$router.push('/admin/notices')" 
+                hoverable
+                body-class="p-6"
+                class="h-full"
+              >
                 <div class="flex items-center">
                   <div class="flex-shrink-0 bg-pink-100 rounded-md p-3 group-hover:bg-pink-200 transition-colors">
                     <svg class="h-6 w-6 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -116,18 +141,18 @@
                     <p class="mt-1 text-sm text-gray-500">发布、编辑或删除系统公告</p>
                   </div>
                 </div>
-              </div>
-              <div class="bg-gray-50 px-6 py-3">
-                <div class="text-sm">
-                  <span class="font-medium text-pink-600 group-hover:text-pink-500 transition-colors">进入管理 &rarr;</span>
-                </div>
-              </div>
+                <template #footer>
+                  <div class="text-sm">
+                    <span class="font-medium text-pink-600 group-hover:text-pink-500 transition-colors">进入管理 &rarr;</span>
+                  </div>
+                </template>
+              </BaseCard>
             </div>
 
           </div>
 
           <!-- Recent Activity -->
-          <div class="mt-8 animate-[slide-up_0.5s_ease-out_0.7s_both]">
+          <div class="mt-8 animate-slide-up animate-delay-700">
              <div class="flex justify-between items-center mb-4">
                <h2 class="text-lg font-medium text-gray-900">系统公告</h2>
                <router-link to="/notices" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 flex items-center transition-colors">
@@ -143,9 +168,10 @@
                 <p>暂无公告</p>
              </div>
              <div v-else class="space-y-4">
-                <div v-for="notice in displayedNotices" :key="notice.id" 
-                  class="bg-white shadow rounded-2xl p-6 border transition-all duration-300"
-                  :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100 hover:shadow-md'"
+                <BaseCard v-for="notice in displayedNotices" :key="notice.id" 
+                  body-class="p-6"
+                  :border="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'"
+                  :class="{ 'hover:shadow-md': !notice.pinned }"
                 >
                   <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
@@ -180,7 +206,7 @@
                         </div>
                     </div>
                   </div>
-                </div>
+                </BaseCard>
              </div>
           </div>
 
@@ -194,6 +220,7 @@
 import { onMounted, ref, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import NavBar from '../components/NavBar.vue';
+import BaseCard from '../components/BaseCard.vue';
 import api from '../api';
 import { Loader2, ChevronRight } from 'lucide-vue-next';
 import { marked } from 'marked';
@@ -240,4 +267,3 @@ onMounted(async () => {
   fetchNotices();
 });
 </script>
-

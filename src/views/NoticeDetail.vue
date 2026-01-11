@@ -25,8 +25,8 @@
                 <p>公告不存在或已被删除</p>
                 <button @click="$router.push('/notices')" class="mt-4 text-indigo-600 font-medium">查看所有公告</button>
              </div>
-             <div v-else 
-                  class="bg-white shadow rounded-2xl p-8 border transition-all duration-300"
+             <BaseCard v-else 
+                  body-class="p-8"
                   :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'"
              >
                 <div class="flex items-start space-x-6">
@@ -65,7 +65,7 @@
                         </div>
                     </div>
                 </div>
-             </div>
+             </BaseCard>
           </div>
         </div>
       </main>
@@ -77,6 +77,7 @@
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import NavBar from '../components/NavBar.vue';
+import BaseCard from '../components/BaseCard.vue';
 import api from '../api';
 import { Loader2, ArrowLeft } from 'lucide-vue-next';
 import { marked } from 'marked';
@@ -98,8 +99,6 @@ const loading = ref(true);
 const fetchNotice = async () => {
   const id = route.params.id;
   try {
-    // Assuming /notices handles fetching all or specific by ID depends on backend
-    // If backend doesn't have get by id, we might need to fetch all and filter or check NoticeController
     const data = await api.get<Notice>(`/notices/${id}`);
     notice.value = data;
   } catch (error) {

@@ -28,8 +28,8 @@
                 <p>暂无公告</p>
              </div>
              <div v-else class="space-y-6">
-                <div v-for="notice in notices" :key="notice.id" 
-                  class="bg-white shadow rounded-2xl p-6 border transition-all duration-300"
+                <BaseCard v-for="notice in notices" :key="notice.id" 
+                  body-class="p-6"
                   :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100 hover:shadow-md'"
                 >
                   <div class="flex items-start space-x-4">
@@ -65,7 +65,7 @@
                         </div>
                     </div>
                   </div>
-                </div>
+                </BaseCard>
              </div>
           </div>
         </div>
@@ -78,6 +78,7 @@
 import { onMounted, ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import NavBar from '../components/NavBar.vue';
+import BaseCard from '../components/BaseCard.vue';
 import api from '../api';
 import { Loader2, ArrowLeft, ChevronRight } from 'lucide-vue-next';
 import { marked } from 'marked';
