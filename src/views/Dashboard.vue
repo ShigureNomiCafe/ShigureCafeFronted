@@ -128,15 +128,22 @@
 
           <!-- Recent Activity -->
           <div class="mt-8 animate-[slide-up_0.5s_ease-out_0.7s_both]">
-             <h2 class="text-lg font-medium text-gray-900 mb-4">系统公告</h2>
+             <div class="flex justify-between items-center mb-4">
+               <h2 class="text-lg font-medium text-gray-900">系统公告</h2>
+               <router-link to="/notices" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 flex items-center transition-colors">
+                 查看全部
+                 <ChevronRight class="h-4 w-4 ml-1" />
+               </router-link>
+             </div>
+             
              <div v-if="loadingNotices" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400">
                 <Loader2 class="h-8 w-8 animate-spin" />
              </div>
-             <div v-else-if="notices.length === 0" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500">
+             <div v-else-if="displayedNotices.length === 0" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500">
                 <p>暂无公告</p>
              </div>
              <div v-else class="space-y-4">
-                <div v-for="notice in notices" :key="notice.id" 
+                <div v-for="notice in displayedNotices" :key="notice.id" 
                   class="bg-white shadow rounded-2xl p-6 border transition-all duration-300"
                   :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100 hover:shadow-md'"
                 >
@@ -160,10 +167,16 @@
                           </div>
                           <span class="text-xs text-gray-400">{{ new Date(notice.createdAt).toLocaleDateString() }}</span>
                         </div>
-                        <div class="mt-2 prose prose-sm prose-slate max-w-none text-gray-600" v-html="renderMarkdown(notice.content)"></div>
-                        <div class="mt-4 flex items-center text-xs text-gray-500">
-                           <span class="font-medium mr-2">{{ notice.authorNickname }}</span>
-                           <span v-if="notice.updatedAt !== notice.createdAt" class="italic"> (已编辑)</span>
+                        <div class="mt-2 prose prose-sm prose-slate max-w-none text-gray-600 line-clamp-3 overflow-hidden" v-html="renderMarkdown(notice.content)"></div>
+                        <div class="mt-4 flex items-center justify-between">
+                           <div class="flex items-center text-xs text-gray-500">
+                              <span class="font-medium mr-2">{{ notice.authorNickname }}</span>
+                              <span v-if="notice.updatedAt !== notice.createdAt" class="italic"> (已编辑)</span>
+                           </div>
+                           <button @click="$router.push(`/notices/${notice.id}`)" class="text-xs font-bold text-indigo-600 hover:text-indigo-500 transition-colors flex items-center">
+                             阅读全文
+                             <ChevronRight class="h-3 w-3 ml-0.5" />
+                           </button>
                         </div>
                     </div>
                   </div>
@@ -178,11 +191,11 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import NavBar from '../components/NavBar.vue';
 import api from '../api';
-import { Loader2 } from 'lucide-vue-next';
+import { Loader2, ChevronRight } from 'lucide-vue-next';
 import { marked } from 'marked';
 
 interface Notice {
@@ -198,6 +211,12 @@ interface Notice {
 const auth = useAuthStore();
 const notices = ref<Notice[]>([]);
 const loadingNotices = ref(true);
+
+const displayedNotices = computed(() => {
+  const pinned = notices.value.filter(n => n.pinned);
+  const unpinned = notices.value.filter(n => !n.pinned).slice(0, 3);
+  return [...pinned, ...unpinned];
+});
 
 const fetchNotices = async () => {
   try {

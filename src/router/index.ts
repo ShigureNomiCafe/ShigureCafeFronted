@@ -4,6 +4,8 @@ import Login from '../views/Login.vue';
 import Register from '../views/Register.vue';
 import ForgotPassword from '../views/ForgotPassword.vue';
 import Dashboard from '../views/Dashboard.vue';
+import AllNotices from '../views/AllNotices.vue';
+import NoticeDetail from '../views/NoticeDetail.vue';
 import Profile from '../views/Profile.vue';
 import Security from '../views/Security.vue';
 import AdminUsers from '../views/AdminUsers.vue';
@@ -35,6 +37,18 @@ const router = createRouter({
       path: '/dashboard', 
       name: 'Dashboard', 
       component: Dashboard,
+      meta: { requiresAuth: true }
+    },
+    { 
+      path: '/notices', 
+      name: 'AllNotices', 
+      component: AllNotices,
+      meta: { requiresAuth: true }
+    },
+    { 
+      path: '/notices/:id', 
+      name: 'NoticeDetail', 
+      component: NoticeDetail,
       meta: { requiresAuth: true }
     },
     { 
