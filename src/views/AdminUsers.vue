@@ -12,7 +12,7 @@
             variant="secondary"
             @click="fetchUsers" 
             :loading="loading"
-            class="animate-slide-up animate-delay-100"
+            class="animate-slide-up animate-delay-50"
           >
             <RotateCw v-if="!loading" class="h-4 w-4 mr-2" />
             刷新列表
@@ -22,7 +22,7 @@
       
       <main>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8">
-          <div class="px-4 sm:px-0 animate-slide-up animate-delay-200">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-100">
             
             <BaseCard body-class="p-0 overflow-hidden">
               <!-- Loading State -->

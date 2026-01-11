@@ -13,7 +13,7 @@
       <main>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8 space-y-8">
           <!-- Password Section -->
-          <div class="px-4 sm:px-0 animate-slide-up animate-delay-200">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-50">
             <BaseCard title="密码修改" subtitle="为了您的账户安全，建议定期更换密码。">
               <form @submit.prevent="handleChangePassword" class="space-y-6 max-w-lg">
                 <BaseInput
@@ -48,7 +48,7 @@
           </div>
 
           <!-- Email Section -->
-          <div class="px-4 sm:px-0 animate-slide-up animate-delay-400">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-100">
             <BaseCard title="邮箱管理" subtitle="管理您的绑定邮箱，用于找回密码与安全通知。">
               <div class="flex items-center justify-between">
                 <div>
@@ -61,7 +61,7 @@
           </div>
 
           <!-- Email 2FA Section -->
-          <div class="px-4 sm:px-0 animate-slide-up animate-delay-600">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-150">
             <BaseCard title="邮箱双重验证" subtitle="开启后，登录时需提供发送至邮箱的验证码。">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
@@ -82,7 +82,7 @@
           </div>
 
           <!-- TOTP 2FA Section -->
-          <div class="px-4 sm:px-0 animate-slide-up animate-delay-700">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-200">
             <BaseCard title="身份验证器 (TOTP)" subtitle="开启后，登录时需提供身份验证器应用生成的代码。">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">

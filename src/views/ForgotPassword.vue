@@ -66,7 +66,7 @@
     </form>
     <div class="text-center text-sm mt-4">
       <router-link to="/login" class="font-medium text-blue-600 hover:text-indigo-500 transition-colors">
-        记起密码了？返回登录
+        返回登录
       </router-link>
     </div>
   </AuthLayout>

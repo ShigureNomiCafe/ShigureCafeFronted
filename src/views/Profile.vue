@@ -12,7 +12,7 @@
       </header>
       <main>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8">
-          <div class="px-4 sm:px-0 animate-slide-up animate-delay-200">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-50">
             <BaseCard title="基本资料" subtitle="您的个人账户详情与状态。">
               <dl class="grid grid-cols-1 gap-x-4 gap-y-8 sm:grid-cols-2">
                 <div class="sm:col-span-1">

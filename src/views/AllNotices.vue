@@ -9,18 +9,18 @@
             <button @click="$router.back()" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600">
               <ArrowLeft class="h-6 w-6" />
             </button>
-            <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-[slide-up_0.5s_ease-out]">
+            <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
               所有公告
             </h1>
           </div>
-          <div class="text-sm text-gray-500 animate-[slide-up_0.5s_ease-out_0.1s_both]">
+          <div class="text-sm text-gray-500 animate-slide-up animate-delay-50">
             共 {{ notices.length }} 条公告
           </div>
         </div>
       </header>
       <main>
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 mt-8">
-          <div class="px-4 sm:px-0 animate-[slide-up_0.5s_ease-out_0.2s_both]">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-100">
              <div v-if="loading" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400">
                 <Loader2 class="h-8 w-8 animate-spin" />
              </div>
@@ -28,11 +28,17 @@
                 <p>暂无公告</p>
              </div>
              <div v-else class="space-y-6">
-                <BaseCard v-for="notice in notices" :key="notice.id" 
-                  body-class="p-6"
-                  :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100 hover:shadow-md'"
+                <div v-for="(notice, index) in notices" :key="notice.id"
+                  class="animate-slide-up"
+                  :style="{ animationDelay: `${(index + 3) * 50}ms` }"
                 >
-                  <div class="flex items-start space-x-4">
+                  <BaseCard 
+                    @click="$router.push(`/notices/${notice.id}`)"
+                    hoverable
+                    body-class="p-6"
+                    :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'"
+                  >
+                    <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
                         <span class="inline-flex items-center justify-center h-10 w-10 rounded-full"
                           :class="notice.pinned ? 'bg-orange-100' : 'bg-blue-100'"
@@ -58,14 +64,21 @@
                              <span class="font-medium text-gray-900 mr-2">{{ notice.authorNickname }}</span>
                              <span v-if="notice.updatedAt !== notice.createdAt" class="italic"> (已编辑)</span>
                            </div>
-                           <button @click="$router.push(`/notices/${notice.id}`)" class="text-sm font-bold text-indigo-600 hover:text-indigo-500 transition-colors flex items-center">
-                             阅读全文
-                             <ChevronRight class="h-4 w-4 ml-1" />
-                           </button>
+                           <div class="flex items-center space-x-4">
+                             <button v-if="auth.user?.role === 'ADMIN'" @click="$router.push(`/admin/notices/${notice.id}/edit`)" class="text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors flex items-center">
+                               <Edit2 class="h-4 w-4 mr-1" />
+                               编辑
+                             </button>
+                             <button @click="$router.push(`/notices/${notice.id}`)" class="text-sm font-bold text-indigo-600 hover:text-indigo-500 transition-colors flex items-center">
+                               阅读全文
+                               <ChevronRight class="h-4 w-4 ml-1" />
+                             </button>
+                           </div>
                         </div>
                     </div>
                   </div>
                 </BaseCard>
+              </div>
              </div>
           </div>
         </div>
@@ -80,7 +93,7 @@ import { useAuthStore } from '../stores/auth';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import api from '../api';
-import { Loader2, ArrowLeft, ChevronRight } from 'lucide-vue-next';
+import { Loader2, ArrowLeft, ChevronRight, Edit2 } from 'lucide-vue-next';
 import { marked } from 'marked';
 
 interface Notice {

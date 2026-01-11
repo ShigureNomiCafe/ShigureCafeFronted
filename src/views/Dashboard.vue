@@ -2,13 +2,20 @@
   <div class="min-h-screen bg-gray-50">
     <NavBar />
 
-    <div class="py-10">
+    <div v-if="pageLoading" class="flex items-center justify-center min-h-[calc(100vh-64px)]">
+      <div class="flex flex-col items-center space-y-4">
+        <Loader2 class="h-12 w-12 animate-spin text-indigo-600" />
+        <p class="text-gray-500 font-medium animate-pulse">正在加载您的空间...</p>
+      </div>
+    </div>
+
+    <div v-else class="py-10">
       <header>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
             欢迎回来, <span class="text-indigo-600">{{ auth.user?.nickname || auth.user?.username || '用户' }}</span>
           </h1>
-          <div class="text-sm text-gray-500 animate-slide-up animate-delay-100">
+          <div class="text-sm text-gray-500 animate-slide-up animate-delay-50">
             今天是 {{ new Date().toLocaleDateString() }}
           </div>
         </div>
@@ -18,7 +25,7 @@
           <div class="px-4 sm:px-0 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             
             <!-- Quick Action Cards -->
-            <div class="animate-slide-up animate-delay-200">
+            <div class="animate-slide-up animate-delay-100">
               <BaseCard 
                 @click="$router.push('/profile')" 
                 hoverable
@@ -44,7 +51,7 @@
               </BaseCard>
             </div>
 
-            <div class="animate-slide-up animate-delay-300">
+            <div class="animate-slide-up animate-delay-150">
               <BaseCard 
                 @click="$router.push('/security')" 
                 hoverable
@@ -71,7 +78,7 @@
             </div>
 
             <!-- Admin Cards -->
-            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-400">
+            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-200">
               <BaseCard 
                 @click="$router.push('/admin/users')" 
                 hoverable
@@ -97,7 +104,7 @@
               </BaseCard>
             </div>
 
-            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-500">
+            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-250">
               <BaseCard 
                 @click="$router.push('/admin/audits')" 
                 hoverable
@@ -123,7 +130,7 @@
               </BaseCard>
             </div>
 
-            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-600">
+            <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-300">
               <BaseCard 
                 @click="$router.push('/admin/notices')" 
                 hoverable
@@ -152,8 +159,8 @@
           </div>
 
           <!-- Recent Activity -->
-          <div class="mt-8 animate-slide-up animate-delay-700">
-             <div class="flex justify-between items-center mb-4">
+          <div class="mt-12 px-4 sm:px-0">
+             <div class="flex justify-between items-center mb-4 animate-slide-up" :class="noticeDelayBase">
                <h2 class="text-lg font-medium text-gray-900">系统公告</h2>
                <router-link to="/notices" class="text-sm font-medium text-indigo-600 hover:text-indigo-500 flex items-center transition-colors">
                  查看全部
@@ -161,19 +168,24 @@
                </router-link>
              </div>
              
-             <div v-if="loadingNotices" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400">
+             <div v-if="loadingNotices" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400 animate-slide-up" :class="getNoticeDelay(0)">
                 <Loader2 class="h-8 w-8 animate-spin" />
              </div>
-             <div v-else-if="displayedNotices.length === 0" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500">
+             <div v-else-if="displayedNotices.length === 0" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500 animate-slide-up" :class="getNoticeDelay(0)">
                 <p>暂无公告</p>
              </div>
              <div v-else class="space-y-4">
-                <BaseCard v-for="notice in displayedNotices" :key="notice.id" 
-                  body-class="p-6"
-                  :border="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'"
-                  :class="{ 'hover:shadow-md': !notice.pinned }"
+                <div v-for="(notice, index) in displayedNotices" :key="notice.id"
+                  class="animate-slide-up"
+                  :class="getNoticeDelay(index)"
                 >
-                  <div class="flex items-start space-x-4">
+                  <BaseCard 
+                    @click="$router.push(`/notices/${notice.id}`)"
+                    hoverable
+                    body-class="p-6"
+                    :border="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'"
+                  >
+                    <div class="flex items-start space-x-4">
                     <div class="flex-shrink-0">
                         <span class="inline-flex items-center justify-center h-10 w-10 rounded-full"
                           :class="notice.pinned ? 'bg-orange-100' : 'bg-blue-100'"
@@ -199,14 +211,21 @@
                               <span class="font-medium mr-2">{{ notice.authorNickname }}</span>
                               <span v-if="notice.updatedAt !== notice.createdAt" class="italic"> (已编辑)</span>
                            </div>
-                           <button @click="$router.push(`/notices/${notice.id}`)" class="text-xs font-bold text-indigo-600 hover:text-indigo-500 transition-colors flex items-center">
-                             阅读全文
-                             <ChevronRight class="h-3 w-3 ml-0.5" />
-                           </button>
+                           <div class="flex items-center space-x-3">
+                             <button v-if="auth.user?.role === 'ADMIN'" @click="$router.push(`/admin/notices/${notice.id}/edit`)" class="text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors flex items-center">
+                               <Edit2 class="h-3 w-3 mr-0.5" />
+                               编辑
+                             </button>
+                             <button @click="$router.push(`/notices/${notice.id}`)" class="text-xs font-bold text-indigo-600 hover:text-indigo-500 transition-colors flex items-center">
+                               阅读全文
+                               <ChevronRight class="h-3 w-3 ml-0.5" />
+                             </button>
+                           </div>
                         </div>
                     </div>
                   </div>
                 </BaseCard>
+              </div>
              </div>
           </div>
 
@@ -222,7 +241,7 @@ import { useAuthStore } from '../stores/auth';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import api from '../api';
-import { Loader2, ChevronRight } from 'lucide-vue-next';
+import { Loader2, ChevronRight, Edit2 } from 'lucide-vue-next';
 import { marked } from 'marked';
 
 interface Notice {
@@ -237,6 +256,7 @@ interface Notice {
 
 const auth = useAuthStore();
 const notices = ref<Notice[]>([]);
+const pageLoading = ref(true);
 const loadingNotices = ref(true);
 
 const displayedNotices = computed(() => {
@@ -244,6 +264,23 @@ const displayedNotices = computed(() => {
   const unpinned = notices.value.filter(n => !n.pinned).slice(0, 3);
   return [...pinned, ...unpinned];
 });
+
+// Calculate the base delay for the notice section based on user role
+const noticeDelayBase = computed(() => {
+  // 2 base cards + (up to 3 admin cards)
+  const cardCount = auth.user?.role === 'ADMIN' ? 5 : 2;
+  const baseDelay = (cardCount + 2) * 50; // + header items (Title + Date)
+  return `animate-delay-${baseDelay}`;
+});
+
+const getNoticeDelay = (index: number) => {
+  const cardCount = auth.user?.role === 'ADMIN' ? 5 : 2;
+  const headerCount = 2; // Title + Date
+  const sectionHeaderCount = 1; 
+  const totalPreceding = cardCount + headerCount + sectionHeaderCount;
+  const itemDelay = (totalPreceding + index) * 50;
+  return `animate-delay-${itemDelay}`;
+};
 
 const fetchNotices = async () => {
   try {
@@ -261,9 +298,15 @@ const renderMarkdown = (content: string) => {
 };
 
 onMounted(async () => {
-  if (!auth.user) {
-    await auth.fetchCurrentUser();
+  try {
+    if (!auth.user) {
+      await auth.fetchCurrentUser();
+    }
+  } catch (error) {
+    console.error('Failed to fetch user', error);
+  } finally {
+    pageLoading.value = false;
+    fetchNotices();
   }
-  fetchNotices();
 });
 </script>

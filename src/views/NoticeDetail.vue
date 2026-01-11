@@ -9,15 +9,23 @@
             <button @click="$router.back()" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600">
               <ArrowLeft class="h-6 w-6" />
             </button>
-            <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-[slide-up_0.5s_ease-out]">
+            <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
               公告详情
             </h1>
           </div>
+          <button 
+            v-if="auth.user?.role === 'ADMIN' && notice" 
+            @click="$router.push(`/admin/notices/${notice.id}/edit`)" 
+            class="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-bold text-sm animate-slide-up animate-delay-50"
+          >
+            <Edit2 class="h-4 w-4" />
+            <span>编辑公告</span>
+          </button>
         </div>
       </header>
       <main>
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 mt-8">
-          <div class="px-4 sm:px-0 animate-[slide-up_0.5s_ease-out_0.2s_both]">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-100">
              <div v-if="loading" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400">
                 <Loader2 class="h-8 w-8 animate-spin" />
              </div>
@@ -25,10 +33,11 @@
                 <p>公告不存在或已被删除</p>
                 <button @click="$router.push('/notices')" class="mt-4 text-indigo-600 font-medium">查看所有公告</button>
              </div>
-             <BaseCard v-else 
-                  body-class="p-8"
-                  :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'"
-             >
+             <div v-else class="animate-slide-up animate-delay-150">
+               <BaseCard 
+                    body-class="p-8"
+                    :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'"
+               >
                 <div class="flex items-start space-x-6">
                     <div class="flex-shrink-0">
                         <span class="inline-flex items-center justify-center h-12 w-12 rounded-full"
@@ -66,6 +75,7 @@
                     </div>
                 </div>
              </BaseCard>
+            </div>
           </div>
         </div>
       </main>
@@ -76,10 +86,11 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { useAuthStore } from '../stores/auth';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import api from '../api';
-import { Loader2, ArrowLeft } from 'lucide-vue-next';
+import { Loader2, ArrowLeft, Edit2 } from 'lucide-vue-next';
 import { marked } from 'marked';
 
 interface Notice {
@@ -93,6 +104,7 @@ interface Notice {
 }
 
 const route = useRoute();
+const auth = useAuthStore();
 const notice = ref<Notice | null>(null);
 const loading = ref(true);
 

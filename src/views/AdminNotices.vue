@@ -9,11 +9,11 @@
             公告管理
           </h1>
           <div class="flex space-x-3">
-            <BaseButton @click="openCreate" class="animate-slide-up animate-delay-100">
+            <BaseButton @click="$router.push('/admin/notices/new')" class="animate-slide-up animate-delay-50">
               <Plus class="h-4 w-4 mr-2" />
               发布公告
             </BaseButton>
-            <BaseButton variant="secondary" @click="fetchNotices" :loading="loading" class="animate-slide-up animate-delay-100">
+            <BaseButton variant="secondary" @click="fetchNotices" :loading="loading" class="animate-slide-up animate-delay-50">
               <RotateCw v-if="!loading" class="h-4 w-4 mr-2" />
               刷新
             </BaseButton>
@@ -23,7 +23,7 @@
       
       <main>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8">
-          <div class="px-4 sm:px-0 animate-slide-up animate-delay-200">
+          <div class="px-4 sm:px-0 animate-slide-up animate-delay-100">
             
             <BaseCard body-class="p-0 overflow-hidden">
               <!-- Loading State -->
@@ -69,7 +69,7 @@
                         {{ new Date(notice.updatedAt).toLocaleString() }}
                       </td>
                       <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-                        <button @click="openEdit(notice)" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded-md transition-colors" title="编辑公告">
+                        <button @click="$router.push(`/admin/notices/${notice.id}/edit`)" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded-md transition-colors" title="编辑公告">
                           <Edit2 class="h-4 w-4" />
                         </button>
                         <button @click="confirmDelete(notice)" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-1.5 rounded-md transition-colors" title="删除公告">
@@ -84,52 +84,6 @@
           </div>
         </div>
       </main>
-
-      <!-- Edit/Create Notice Modal -->
-      <Modal :show="showEditModal" :title="selectedNotice ? '编辑公告' : '发布公告'" @close="closeEdit" maxWidth="2xl">
-        <div class="mt-4 space-y-4">
-          <BaseInput v-model="form.title" label="标题" placeholder="公告标题" />
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">内容 (支持 Markdown)</label>
-            <textarea v-model="form.content" rows="10" class="appearance-none rounded-xl relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 sm:text-sm" placeholder="公告内容"></textarea>
-          </div>
-          <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100 transition-all hover:bg-gray-100/50">
-            <div class="flex items-center space-x-3">
-              <div class="p-2 bg-orange-100 rounded-lg">
-                <ArrowUpToLine class="h-5 w-5 text-orange-600" />
-              </div>
-              <div>
-                <span class="block text-sm font-bold text-gray-900">置顶此公告</span>
-              </div>
-            </div>
-            <button 
-              @click="form.pinned = !form.pinned"
-              type="button"
-              class="relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none"
-              :class="form.pinned ? 'bg-orange-500' : 'bg-gray-200'"
-            >
-              <span 
-                class="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out"
-                :class="form.pinned ? 'translate-x-5' : 'translate-x-0'"
-              ></span>
-            </button>
-          </div>
-          
-          <div class="mt-4">
-            <label class="block text-sm font-medium text-gray-700 mb-1">预览</label>
-            <div class="border border-gray-100 rounded-xl p-4 bg-gray-50/30 overflow-y-auto max-h-[200px]">
-               <div v-if="!form.content" class="text-gray-400 text-sm italic text-center">
-                 输入内容以预览...
-               </div>
-               <div v-else class="prose prose-sm prose-slate max-w-none" v-html="renderMarkdown(form.content)"></div>
-            </div>
-          </div>
-        </div>
-        <template #footer>
-          <BaseButton @click="saveNotice" :loading="saving" label="提交" />
-          <BaseButton variant="outline" @click="closeEdit" label="取消" />
-        </template>
-      </Modal>
 
       <!-- Delete Confirmation Modal -->
       <Modal :show="showDeleteModal" title="删除公告" @close="showDeleteModal = false">
@@ -159,12 +113,10 @@ import { ref, onMounted } from 'vue';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import BaseButton from '../components/BaseButton.vue';
-import BaseInput from '../components/BaseInput.vue';
 import Modal from '../components/Modal.vue';
 import api from '../api';
 import { useToastStore } from '../stores/toast';
-import { Plus, RotateCw, Loader2, Megaphone, Edit2, Trash2, ArrowUpToLine } from 'lucide-vue-next';
-import { marked } from 'marked';
+import { Plus, RotateCw, Loader2, Megaphone, Edit2, Trash2 } from 'lucide-vue-next';
 
 interface Notice {
   id: number;
@@ -178,17 +130,9 @@ interface Notice {
 
 const notices = ref<Notice[]>([]);
 const loading = ref(false);
-const saving = ref(false);
-const showEditModal = ref(false);
 const showDeleteModal = ref(false);
 const selectedNotice = ref<Notice | null>(null);
 const toast = useToastStore();
-
-const form = ref({
-  title: '',
-  content: '',
-  pinned: false
-});
 
 const fetchNotices = async () => {
   loading.value = true;
@@ -201,51 +145,6 @@ const fetchNotices = async () => {
     toast.error('获取公告失败', error.message);
   } finally {
     loading.value = false;
-  }
-};
-
-const openCreate = () => {
-  selectedNotice.value = null;
-  form.value.title = '';
-  form.value.content = '';
-  form.value.pinned = false;
-  showEditModal.value = true;
-};
-
-const openEdit = (notice: Notice) => {
-  selectedNotice.value = notice;
-  form.value.title = notice.title;
-  form.value.content = notice.content;
-  form.value.pinned = notice.pinned;
-  showEditModal.value = true;
-};
-
-const closeEdit = () => {
-  showEditModal.value = false;
-  selectedNotice.value = null;
-};
-
-const saveNotice = async () => {
-  if (!form.value.title || !form.value.content) {
-    toast.error('请填写标题和内容');
-    return;
-  }
-
-  saving.value = true;
-  try {
-    if (selectedNotice.value) {
-      await api.put(`/notices/${selectedNotice.value.id}`, form.value);
-      toast.success('公告更新成功');
-    } else {
-      await api.post('/notices', form.value);
-      toast.success('公告发布成功');
-    }
-    closeEdit();
-    fetchNotices();
-  } catch (error: any) {
-    toast.error('保存失败', error.message);
-  } finally {
-    saving.value = false;
   }
 };
 
@@ -264,10 +163,6 @@ const handleDelete = async () => {
   } catch (error: any) {
     toast.error('删除失败', error.message);
   }
-};
-
-const renderMarkdown = (content: string) => {
-  return marked.parse(content);
 };
 
 onMounted(() => {
