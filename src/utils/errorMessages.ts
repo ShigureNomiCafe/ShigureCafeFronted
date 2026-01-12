@@ -34,6 +34,16 @@ export const ERROR_MESSAGES: Record<string, string> = {
     'METHOD_NOT_ALLOWED': '请求方法不允许',
     'DATA_INTEGRITY_VIOLATION': '数据完整性冲突',
     'NOTICE_NOT_FOUND': '公告不存在',
+    
+    // Minecraft Binding
+    'XBOX_ACCOUNT_NOT_FOUND': '未找到有效的 Xbox 档案，请先在 Xbox 官网创建个人资料',
+    'XBOX_CHILD_ACCOUNT_RESTRICTION': '您的账号受到青少年保护限制，无法完成绑定',
+    'MINECRAFT_AUTH_FAILED': 'Minecraft 验证失败，请确保您的账号已购买游戏',
+    'MINECRAFT_APP_REGISTRATION_INVALID': 'Minecraft 服务配置无效（应用注册未完成），请联系管理员',
+    'MINECRAFT_PROFILE_FAILED': '无法获取 Minecraft 资料，请确保您已设置游戏角色',
+    'MICROSOFT_AUTH_FAILED': '微软登录验证失败',
+    'XBOX_LIVE_AUTH_FAILED': 'Xbox Live 验证失败',
+    'XSTS_AUTH_FAILED': 'Xbox 安全令牌获取失败',
 };
 
 export const getErrorMessage = (code: string, metadata?: any): string => {
