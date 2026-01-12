@@ -39,6 +39,20 @@ A modernized, high-performance user management interface for ShigureCafe, design
 *   **Icons:** Lucide Vue Next
 *   **QR Codes:** qrcode.vue (for 2FA setup)
 
+## Project Structure
+
+```text
+src/
+├── api/                # Axios instance and API service definitions
+├── assets/             # Static assets (images, global styles)
+├── components/         # Reusable UI components (Buttons, Inputs, Modals)
+├── router/             # Vue Router configuration and guards
+├── stores/             # Pinia state management (Auth, Toast, Notices)
+├── types/              # TypeScript interfaces and declarations
+├── utils/              # Helper functions and formatters
+└── views/              # Page components (Dashboard, Login, Admin panels)
+```
+
 ## Getting Started
 
 ### Prerequisites
