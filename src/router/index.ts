@@ -106,8 +106,13 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore();
+
+  if (auth.token && !auth.user) {
+    await auth.fetchCurrentUser();
+  }
+
   const isAuthenticated = !!auth.token;
 
   if (to.meta.requiresAuth && !isAuthenticated) {

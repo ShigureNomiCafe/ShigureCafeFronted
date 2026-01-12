@@ -36,6 +36,7 @@ export const useAuthStore = defineStore('auth', {
     hasEmail2fa: false,
     twoFactorEmail: null as string | null,
     pendingUsername: null as string | null,
+    fetchUserPromise: null as Promise<void> | null,
   }),
   actions: {
     async login(credentials: any) {
@@ -88,16 +89,25 @@ export const useAuthStore = defineStore('auth', {
     },
     async fetchCurrentUser() {
       if (!this.token) return;
-      try {
-        const decoded = jwtDecode<JwtPayload>(this.token);
-        const username = decoded.sub;
-        const data = await api.get<User[]>(`/users?username=${username}`);
-        if (data && data.length > 0) {
-          this.user = data[0] ?? null;
+      if (this.user) return;
+      if (this.fetchUserPromise) return this.fetchUserPromise;
+
+      this.fetchUserPromise = (async () => {
+        try {
+          const decoded = jwtDecode<JwtPayload>(this.token!);
+          const username = decoded.sub;
+          const data = await api.get<User[]>(`/users?username=${username}`);
+          if (data && data.length > 0) {
+            this.user = data[0] ?? null;
+          }
+        } catch (error) {
+          console.error('Failed to fetch user', error);
+        } finally {
+          this.fetchUserPromise = null;
         }
-      } catch (error) {
-        console.error('Failed to fetch user', error);
-      }
+      })();
+
+      return this.fetchUserPromise;
     },
     async logout() {
       try {
