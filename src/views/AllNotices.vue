@@ -61,6 +61,20 @@
                               <span class="text-sm text-gray-400">{{ new Date(notice.createdAt).toLocaleString() }}</span>
                             </div>
                             <div class="mt-4 prose prose-slate max-w-none text-gray-600 line-clamp-3 overflow-hidden" v-html="renderMarkdown(notice.content)"></div>
+                            
+                            <!-- Reaction Summary -->
+                            <div v-if="notice.reactions && notice.reactions.length > 0" class="mt-3 flex flex-wrap items-center gap-1.5">
+                              <span 
+                                v-for="reaction in notice.reactions.slice(0, 5)" 
+                                :key="reaction.emoji"
+                                class="inline-flex items-center space-x-1 text-[10px] font-bold text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full"
+                              >
+                                <span>{{ reaction.emoji }}</span>
+                                <span>{{ reaction.count }}</span>
+                              </span>
+                              <span v-if="notice.reactions.length > 5" class="text-[10px] text-gray-400">...</span>
+                            </div>
+
                             <div class="mt-6 flex items-center justify-between border-t border-gray-50 pt-4">
                                <div class="flex items-center text-sm text-gray-500">
                                  <span class="font-medium text-gray-900 mr-2">{{ notice.authorNickname }}</span>

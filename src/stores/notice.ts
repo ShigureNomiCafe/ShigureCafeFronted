@@ -1,12 +1,19 @@
 import { defineStore } from 'pinia';
 import api from '../api';
 
+export interface ReactionCount {
+  emoji: string;
+  count: number;
+  reacted: boolean;
+}
+
 export interface Notice {
   id: number;
   title: string;
   content: string;
   pinned: boolean;
   authorNickname: string;
+  reactions: ReactionCount[];
   createdAt: string;
   updatedAt: string;
 }
@@ -78,6 +85,22 @@ export const useNoticeStore = defineStore('notice', {
         return data;
       } catch (error) {
         console.error(`Failed to fetch notice ${id}`, error);
+        throw error;
+      }
+    },
+    async toggleReaction(noticeId: number, emoji: string) {
+      try {
+        const data = await api.post<Notice>(`/notices/${noticeId}/reactions`, { emoji });
+        const index = this.notices.findIndex(n => n.id === noticeId);
+        if (index !== -1) {
+          this.notices[index] = data;
+          if (this.currentPage === 0) {
+            localStorage.setItem('cached_notices', JSON.stringify(this.notices));
+          }
+        }
+        return data;
+      } catch (error) {
+        console.error(`Failed to toggle reaction on notice ${noticeId}`, error);
         throw error;
       }
     },

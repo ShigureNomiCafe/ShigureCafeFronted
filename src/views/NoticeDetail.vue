@@ -61,6 +61,48 @@
                           </div>
                         </div>
                         <div class="prose prose-indigo max-w-none text-gray-700 leading-relaxed" v-html="renderMarkdown(notice.content)"></div>
+                        
+                        <!-- Emoji Reactions -->
+                        <div v-if="notice" class="mt-8 pt-6 border-t border-gray-50">
+                          <div class="flex flex-wrap items-center gap-2">
+                            <button 
+                              v-for="reaction in notice.reactions" 
+                              :key="reaction.emoji"
+                              @click="handleReaction(reaction.emoji)"
+                              class="flex items-center space-x-2 px-3 py-1.5 rounded-full border transition-all duration-200 transform active:scale-95"
+                              :class="reaction.reacted 
+                                ? 'bg-indigo-50 border-indigo-200 text-indigo-700 ring-1 ring-indigo-200' 
+                                : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300 hover:bg-gray-50'"
+                            >
+                              <span class="text-lg leading-none">{{ reaction.emoji }}</span>
+                              <span class="text-sm font-bold">{{ reaction.count }}</span>
+                            </button>
+                            
+                            <div class="relative" ref="emojiPickerContainer">
+                              <button 
+                                @click="toggleEmojiPicker"
+                                class="flex items-center justify-center h-9 w-9 rounded-full border border-gray-200 bg-white text-gray-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all duration-200"
+                                title="添加回应"
+                              >
+                                <Plus class="h-5 w-5" />
+                              </button>
+                              
+                              <Transition name="emoji-pop">
+                                <div v-if="showEmojiPicker" class="absolute bottom-full mb-3 left-0 z-50 bg-white shadow-2xl border border-gray-100 rounded-2xl p-3 grid grid-cols-4 gap-1 min-w-[180px] origin-bottom-left">
+                                  <button 
+                                    v-for="emoji in commonEmojis" 
+                                    :key="emoji"
+                                    @click="handleReaction(emoji); showEmojiPicker = false"
+                                    class="h-10 w-10 flex items-center justify-center text-xl hover:bg-indigo-50 rounded-xl transition-colors transform hover:scale-110 active:scale-90"
+                                  >
+                                    {{ emoji }}
+                                  </button>
+                                </div>
+                              </Transition>
+                            </div>
+                          </div>
+                        </div>
+
                         <div class="mt-10 flex items-center justify-between border-t border-gray-100 pt-6">
                            <div class="flex items-center text-sm text-gray-500">
                              <div class="mr-3 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
@@ -84,13 +126,13 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
 import { useNoticeStore, type Notice } from '../stores/notice';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
-import { Loader2, ArrowLeft, Edit2 } from 'lucide-vue-next';
+import { Loader2, ArrowLeft, Edit2, Plus } from 'lucide-vue-next';
 import { marked } from 'marked';
 
 const route = useRoute();
@@ -98,6 +140,34 @@ const auth = useAuthStore();
 const noticeStore = useNoticeStore();
 const notice = ref<Notice | null>(null);
 const loading = ref(true);
+const showEmojiPicker = ref(false);
+const emojiPickerContainer = ref<HTMLElement | null>(null);
+const commonEmojis = [
+  '👍', '👎', '❤️', '🔥', 
+  '😄', '🎉', '😮', '😢', 
+  '💯', '👏', '🙌', '✨', 
+  '🤔', '👀', '🚀', '✅'
+];
+
+const toggleEmojiPicker = () => {
+  showEmojiPicker.value = !showEmojiPicker.value;
+};
+
+const handleClickOutside = (event: MouseEvent) => {
+  if (showEmojiPicker.value && emojiPickerContainer.value && !emojiPickerContainer.value.contains(event.target as Node)) {
+    showEmojiPicker.value = false;
+  }
+};
+
+const handleReaction = async (emoji: string) => {
+  if (!notice.value) return;
+  try {
+    const updatedNotice = await noticeStore.toggleReaction(notice.value.id, emoji);
+    notice.value = updatedNotice;
+  } catch (error) {
+    console.error('Failed to toggle reaction', error);
+  }
+};
 
 const fetchNotice = async () => {
   const id = Number(route.params.id);
@@ -124,5 +194,26 @@ const renderMarkdown = (content: string) => {
 
 onMounted(async () => {
   fetchNotice();
+  document.addEventListener('mousedown', handleClickOutside);
+});
+
+onUnmounted(() => {
+  document.removeEventListener('mousedown', handleClickOutside);
 });
 </script>
+
+<style scoped>
+.emoji-pop-enter-active {
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.emoji-pop-leave-active {
+  transition: all 0.15s cubic-bezier(0.4, 0, 1, 1);
+}
+
+.emoji-pop-enter-from,
+.emoji-pop-leave-to {
+  transform: scale(0.5);
+  opacity: 0;
+}
+</style>
