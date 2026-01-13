@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import api from '../api';
 
-interface User {
+export interface User {
   username: string;
   nickname: string;
   email: string;
@@ -26,52 +26,84 @@ interface PagedResponse<T> {
 
 export const useAdminUserStore = defineStore('adminUser', {
   state: () => {
-    const rawLastUpdated = localStorage.getItem('admin_users_last_updated');
-    let lastUpdated: number | null = null;
-    if (rawLastUpdated) {
-        lastUpdated = isNaN(Number(rawLastUpdated)) 
-            ? new Date(rawLastUpdated).getTime() 
-            : Number(rawLastUpdated);
-    }
-    
-    return {
-      users: JSON.parse(localStorage.getItem('admin_users_cache') || '[]') as User[],
-      pagination: JSON.parse(localStorage.getItem('admin_users_pagination') || '{"currentPage":0,"pageSize":10,"totalElements":0,"totalPages":0,"isLast":true}'),
-      loading: false,
-      lastUpdated,
+    const cached = localStorage.getItem('admin_users_cache');
+    const pagination = localStorage.getItem('admin_users_pagination');
+    const lastUpdated = localStorage.getItem('admin_users_last_updated');
+
+    const parsePotentialMap = (data: string | null) => {
+      if (!data) return {};
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+          return Object.fromEntries(parsed);
+        }
+        return parsed;
+      } catch (e) {
+        return {};
+      }
     };
+
+    const pag = pagination ? JSON.parse(pagination) : {
+      currentPage: 0,
+      pageSize: 10,
+      totalElements: 0,
+      totalPages: 0,
+      isLast: true
+    };
+
+    return {
+      usersMap: parsePotentialMap(cached) as Record<number, User[]>,
+      loading: false,
+      lastUpdatedMap: parsePotentialMap(lastUpdated) as Record<number, number>,
+      currentPage: pag.currentPage,
+      pageSize: pag.pageSize,
+      totalElements: pag.totalElements,
+      totalPages: pag.totalPages,
+      isLast: pag.isLast,
+    };
+  },
+  getters: {
+    users: (state) => state.usersMap[state.currentPage] || [],
+    pagination: (state) => ({
+      currentPage: state.currentPage,
+      pageSize: state.pageSize,
+      totalElements: state.totalElements,
+      totalPages: state.totalPages,
+      isLast: state.isLast
+    })
   },
   actions: {
     async fetchUsers(page = 0, size = 10, force = false) {
+      const pageNum = page;
+      const sizeNum = size;
+
       this.loading = true;
       try {
-        const params: any = { page, size };
-        if (!force && this.pagination.currentPage === page && this.pagination.pageSize === size && this.lastUpdated) {
-            params.t = this.lastUpdated;
+        const params: any = { page: pageNum, size: sizeNum };
+        if (!force && this.lastUpdatedMap[pageNum]) {
+            params.t = this.lastUpdatedMap[pageNum];
         }
 
         const data = await api.get<PagedResponse<User>>('/users', {
           params
         });
         
-        this.users = data.content;
-        this.pagination = {
-          currentPage: data.pageNumber,
-          pageSize: data.pageSize,
-          totalElements: data.totalElements,
-          totalPages: data.totalPages,
-          isLast: data.last
-        };
+        this.usersMap[pageNum] = data.content;
+        this.currentPage = data.pageNumber;
+        this.pageSize = data.pageSize;
+        this.totalElements = data.totalElements;
+        this.totalPages = data.totalPages;
+        this.isLast = data.last;
         
-        this.lastUpdated = data.timestamp;
+        this.lastUpdatedMap[pageNum] = data.timestamp;
         
-        // Always cache the currently viewed page
-        localStorage.setItem('admin_users_cache', JSON.stringify(this.users));
-        localStorage.setItem('admin_users_pagination', JSON.stringify(this.pagination));
-        localStorage.setItem('admin_users_last_updated', this.lastUpdated.toString());
+        this.saveToLocalStorage();
       } catch (error: any) {
         if (error.response && error.response.status === 304) {
-             console.log('Users cache is up to date');
+             this.currentPage = pageNum;
+             if (!this.usersMap[pageNum]) {
+                this.usersMap[pageNum] = [];
+             }
              return;
         }
         console.error('Failed to fetch users', error);
@@ -80,9 +112,19 @@ export const useAdminUserStore = defineStore('adminUser', {
         this.loading = false;
       }
     },
+    saveToLocalStorage() {
+      localStorage.setItem('admin_users_cache', JSON.stringify(this.usersMap));
+      localStorage.setItem('admin_users_last_updated', JSON.stringify(this.lastUpdatedMap));
+      localStorage.setItem('admin_users_pagination', JSON.stringify(this.pagination));
+    },
     clearCache() {
-      this.users = [];
-      this.lastUpdated = null;
+      this.usersMap = {};
+      this.lastUpdatedMap = {};
+      this.currentPage = 0;
+      this.pageSize = 10;
+      this.totalElements = 0;
+      this.totalPages = 0;
+      this.isLast = true;
       localStorage.removeItem('admin_users_cache');
       localStorage.removeItem('admin_users_pagination');
       localStorage.removeItem('admin_users_last_updated');

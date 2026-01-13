@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import api from '../api';
 
-interface Audit {
+export interface Audit {
   username: string;
   nickname: string;
   email: string;
@@ -22,58 +22,89 @@ interface PagedResponse<T> {
 
 export const useAdminAuditStore = defineStore('adminAudit', {
   state: () => {
-    const rawLastUpdated = localStorage.getItem('admin_audits_last_updated');
-    let lastUpdated: number | null = null;
-    if (rawLastUpdated) {
-        lastUpdated = isNaN(Number(rawLastUpdated)) 
-            ? new Date(rawLastUpdated).getTime() 
-            : Number(rawLastUpdated);
-    }
+    const cached = localStorage.getItem('admin_audits_cache');
+    const pagination = localStorage.getItem('admin_audits_pagination');
+    const lastUpdated = localStorage.getItem('admin_audits_last_updated');
+
+    const parsePotentialMap = (data: string | null) => {
+      if (!data) return {};
+      try {
+        const parsed = JSON.parse(data);
+        if (Array.isArray(parsed)) {
+          return Object.fromEntries(parsed);
+        }
+        return parsed;
+      } catch (e) {
+        return {};
+      }
+    };
+
+    const pag = pagination ? JSON.parse(pagination) : {
+      currentPage: 0,
+      pageSize: 10,
+      totalElements: 0,
+      totalPages: 0,
+      isLast: true
+    };
 
     return {
-      audits: JSON.parse(localStorage.getItem('admin_audits_cache') || '[]') as Audit[],
-      pagination: JSON.parse(localStorage.getItem('admin_audits_pagination') || '{"currentPage":0,"pageSize":10,"totalElements":0,"totalPages":0,"isLast":true}'),
+      auditsMap: parsePotentialMap(cached) as Record<number, Audit[]>,
       loading: false,
-      lastUpdated,
+      lastUpdatedMap: parsePotentialMap(lastUpdated) as Record<number, number>,
+      currentPage: pag.currentPage,
+      pageSize: pag.pageSize,
+      totalElements: pag.totalElements,
+      totalPages: pag.totalPages,
+      isLast: pag.isLast,
     };
+  },
+  getters: {
+    audits: (state) => state.auditsMap[state.currentPage] || [],
+    pagination: (state) => ({
+      currentPage: state.currentPage,
+      pageSize: state.pageSize,
+      totalElements: state.totalElements,
+      totalPages: state.totalPages,
+      isLast: state.isLast
+    })
   },
   actions: {
     async fetchAudits(page = 0, size = 10, force = false) {
-      // Logic removed to use backend t parameter
-      
+      const pageNum = page;
+      const sizeNum = size;
+
       this.loading = true;
       try {
         const params: any = {
-            page,
-            size,
+            page: pageNum,
+            size: sizeNum,
             sortBy: 'expiryDate',
             direction: 'desc'
         };
-        if (!force && this.pagination.currentPage === page && this.pagination.pageSize === size && this.lastUpdated) {
-             params.t = this.lastUpdated;
+        if (!force && this.lastUpdatedMap[pageNum]) {
+             params.t = this.lastUpdatedMap[pageNum];
         }
 
         const data = await api.get<PagedResponse<Audit>>('/registrations', {
           params
         });
         
-        this.audits = data.content;
-        this.pagination = {
-          currentPage: data.pageNumber,
-          pageSize: data.pageSize,
-          totalElements: data.totalElements,
-          totalPages: data.totalPages,
-          isLast: data.last
-        };
+        this.auditsMap[pageNum] = data.content;
+        this.currentPage = data.pageNumber;
+        this.pageSize = data.pageSize;
+        this.totalElements = data.totalElements;
+        this.totalPages = data.totalPages;
+        this.isLast = data.last;
         
-        this.lastUpdated = data.timestamp;
+        this.lastUpdatedMap[pageNum] = data.timestamp;
         
-        localStorage.setItem('admin_audits_cache', JSON.stringify(this.audits));
-        localStorage.setItem('admin_audits_pagination', JSON.stringify(this.pagination));
-        localStorage.setItem('admin_audits_last_updated', this.lastUpdated.toString());
+        this.saveToLocalStorage();
       } catch (error: any) {
         if (error.response && error.response.status === 304) {
-             console.log('Audits cache is up to date');
+             this.currentPage = pageNum;
+             if (!this.auditsMap[pageNum]) {
+                this.auditsMap[pageNum] = [];
+             }
              return;
         }
         console.error('Failed to fetch audits', error);
@@ -82,9 +113,19 @@ export const useAdminAuditStore = defineStore('adminAudit', {
         this.loading = false;
       }
     },
+    saveToLocalStorage() {
+      localStorage.setItem('admin_audits_cache', JSON.stringify(this.auditsMap));
+      localStorage.setItem('admin_audits_last_updated', JSON.stringify(this.lastUpdatedMap));
+      localStorage.setItem('admin_audits_pagination', JSON.stringify(this.pagination));
+    },
     clearCache() {
-      this.audits = [];
-      this.lastUpdated = null;
+      this.auditsMap = {};
+      this.lastUpdatedMap = {};
+      this.currentPage = 0;
+      this.pageSize = 10;
+      this.totalElements = 0;
+      this.totalPages = 0;
+      this.isLast = true;
       localStorage.removeItem('admin_audits_cache');
       localStorage.removeItem('admin_audits_pagination');
       localStorage.removeItem('admin_audits_last_updated');
