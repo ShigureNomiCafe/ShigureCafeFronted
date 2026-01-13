@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import api from '../api';
+import { useCacheStore } from './cache';
 
 export interface ReactionCount {
   emoji: string;
@@ -27,15 +28,19 @@ export interface PaginatedNotices {
 }
 
 export const useNoticeStore = defineStore('notice', {
-  state: () => ({
-    notices: [] as Notice[],
-    loading: false,
-    lastUpdated: localStorage.getItem('notices_last_updated') || null,
-    totalPages: 0,
-    totalElements: 0,
-    currentPage: 0,
-    pageSize: 10,
-  }),
+  state: () => {
+    const cached = localStorage.getItem('cached_notices');
+    const pagination = localStorage.getItem('notices_pagination');
+    return {
+      notices: cached ? JSON.parse(cached) : [] as Notice[],
+      loading: false,
+      lastUpdated: localStorage.getItem('notices_last_updated') || null,
+      totalPages: pagination ? JSON.parse(pagination).totalPages : 0,
+      totalElements: pagination ? JSON.parse(pagination).totalElements : 0,
+      currentPage: pagination ? JSON.parse(pagination).currentPage : 0,
+      pageSize: pagination ? JSON.parse(pagination).pageSize : 10,
+    };
+  },
   getters: {
     getNoticeById: (state) => (id: number) => {
       return state.notices.find(n => n.id === id);
@@ -50,9 +55,28 @@ export const useNoticeStore = defineStore('notice', {
     }
   },
   actions: {
-    async fetchNotices(page: any = 0, size: any = 10) {
+    async fetchNotices(page: any = 0, size: any = 10, force: boolean = false) {
       const pageNum = typeof page === 'number' ? page : 0;
       const sizeNum = typeof size === 'number' ? size : 10;
+      
+      const cacheStore = useCacheStore();
+
+      // Check if not forcing and we have cached data for the same page
+      if (!force && this.currentPage === pageNum && this.pageSize === sizeNum && this.lastUpdated) {
+        try {
+          const timestamps = await cacheStore.getTimestamps();
+          const backendNoticeTime = new Date(timestamps.notices).getTime();
+          const localNoticeTime = new Date(this.lastUpdated).getTime();
+
+          if (backendNoticeTime <= localNoticeTime) {
+            console.log('Notices cache is up to date');
+            return;
+          }
+        } catch (error) {
+          console.warn('Failed to fetch cache timestamps, falling back to full fetch', error);
+        }
+      }
+
       this.loading = true;
       try {
         const response = await api.get<PaginatedNotices>(`/notices?page=${pageNum}&size=${sizeNum}&t=${Date.now()}`);
@@ -62,12 +86,18 @@ export const useNoticeStore = defineStore('notice', {
         this.currentPage = response.number;
         this.pageSize = response.size;
         
+        // Use the current time or the most recent notice's updatedAt as local timestamp
         this.lastUpdated = new Date().toISOString();
-        // We only cache the first page for the landing page preview if needed
-        if (page === 0) {
-          localStorage.setItem('cached_notices', JSON.stringify(response.content));
-          localStorage.setItem('notices_last_updated', this.lastUpdated);
-        }
+        
+        // Cache data
+        localStorage.setItem('cached_notices', JSON.stringify(this.notices));
+        localStorage.setItem('notices_last_updated', this.lastUpdated);
+        localStorage.setItem('notices_pagination', JSON.stringify({
+            totalPages: this.totalPages,
+            totalElements: this.totalElements,
+            currentPage: this.currentPage,
+            pageSize: this.pageSize
+        }));
       } catch (error) {
         console.error('Failed to fetch notices', error);
         throw error;

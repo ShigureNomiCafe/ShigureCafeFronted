@@ -8,6 +8,17 @@ export default defineConfig({
     vue(),
     tailwindcss(),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          'vendor-vue': ['vue', 'vue-router', 'pinia'],
+          'vendor-utils': ['axios', 'jwt-decode', 'qrcode.vue', 'lucide-vue-next'],
+          'vendor-ui': ['katex', 'marked', 'marked-katex-extension'],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': {

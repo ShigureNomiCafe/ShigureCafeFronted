@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia';
 import api from '../api';
 import { jwtDecode } from 'jwt-decode';
+import { useCacheStore } from './cache';
 
 interface User {
   username: string;
@@ -30,16 +31,20 @@ interface LoginResponse {
 }
 
 export const useAuthStore = defineStore('auth', {
-  state: () => ({
-    token: localStorage.getItem('token') || null,
-    user: null as User | null,
-    twoFactorRequired: false,
-    hasTotp: false,
-    hasEmail2fa: false,
-    twoFactorEmail: null as string | null,
-    pendingUsername: null as string | null,
-    fetchUserPromise: null as Promise<void> | null,
-  }),
+  state: () => {
+    const cachedUser = localStorage.getItem('auth_user_cache');
+    return {
+      token: localStorage.getItem('token') || null,
+      user: cachedUser ? JSON.parse(cachedUser) : null as User | null,
+      lastUpdated: localStorage.getItem('auth_user_last_updated') || null,
+      twoFactorRequired: false,
+      hasTotp: false,
+      hasEmail2fa: false,
+      twoFactorEmail: null as string | null,
+      pendingUsername: null as string | null,
+      fetchUserPromise: null as Promise<void> | null,
+    };
+  },
   actions: {
     async login(credentials: any) {
       const response = await api.post<LoginResponse>('/auth/token', credentials);
@@ -54,7 +59,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = response.token;
       if (this.token) {
         localStorage.setItem('token', this.token);
-        await this.fetchCurrentUser();
+        await this.fetchCurrentUser(true);
       }
       return { twoFactorRequired: false };
     },
@@ -72,7 +77,7 @@ export const useAuthStore = defineStore('auth', {
         this.hasEmail2fa = false;
         this.twoFactorEmail = null;
         this.pendingUsername = null;
-        await this.fetchCurrentUser();
+        await this.fetchCurrentUser(true);
       }
     },
     async toggleTwoFactor(enabled: boolean, code?: string) {
@@ -80,6 +85,7 @@ export const useAuthStore = defineStore('auth', {
       await api.put(`/users/${this.user.username}/2fa`, { enabled, code });
       if (this.user) {
         this.user.email2faEnabled = enabled;
+        localStorage.setItem('auth_user_cache', JSON.stringify(this.user));
       }
     },
     async send2FACode() {
@@ -89,9 +95,28 @@ export const useAuthStore = defineStore('auth', {
         type: '2FA',
       });
     },
-    async fetchCurrentUser() {
+    async fetchCurrentUser(force: boolean = false) {
       if (!this.token) return;
-      if (this.user) return;
+      
+      const cacheStore = useCacheStore();
+
+      // Check if we can skip based on timestamp
+      if (!force && this.user && this.lastUpdated) {
+        try {
+          const timestamps = await cacheStore.getTimestamps();
+          const backendTime = new Date(timestamps.users).getTime();
+          const localTime = new Date(this.lastUpdated).getTime();
+          
+          // If backend timestamp is not newer than local, we can skip
+          if (backendTime <= localTime) {
+            console.log('User profile cache is up to date');
+            return;
+          }
+        } catch (error) {
+          console.warn('Failed to fetch cache timestamps for user, proceeding with fetch', error);
+        }
+      }
+
       if (this.fetchUserPromise) return this.fetchUserPromise;
 
       this.fetchUserPromise = (async () => {
@@ -101,6 +126,9 @@ export const useAuthStore = defineStore('auth', {
           const data = await api.get<User[]>(`/users?username=${username}`);
           if (data && data.length > 0) {
             this.user = data[0] ?? null;
+            this.lastUpdated = new Date().toISOString();
+            localStorage.setItem('auth_user_cache', JSON.stringify(this.user));
+            localStorage.setItem('auth_user_last_updated', this.lastUpdated);
           }
         } catch (error) {
           console.error('Failed to fetch user', error);
@@ -117,7 +145,10 @@ export const useAuthStore = defineStore('auth', {
       } finally {
         this.token = null;
         this.user = null;
+        this.lastUpdated = null;
         localStorage.removeItem('token');
+        localStorage.removeItem('auth_user_cache');
+        localStorage.removeItem('auth_user_last_updated');
         // Optional: redirect to login handled in component or router
       }
     },

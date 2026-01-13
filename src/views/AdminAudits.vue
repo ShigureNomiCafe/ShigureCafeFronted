@@ -63,12 +63,11 @@
             <BaseButton 
               v-show="!isSearchExpanded"
               variant="secondary"
-              @click="fetchAudits(0)" 
+              @click="fetchAudits(0, true)" 
               :loading="adminAuditStore.loading"
               class="animate-slide-up animate-delay-50"
             >
               <RotateCw v-if="!adminAuditStore.loading" class="h-4 w-4 sm:mr-2" />
-              <RotateCw v-else class="h-4 w-4 sm:mr-2 animate-spin" />
               <span class="hidden sm:inline">刷新列表</span>
             </BaseButton>
           </div>
@@ -361,66 +360,35 @@ const filteredAudits = computed(() => {
 });
 
 
-
-const fetchAudits = async (page?: number) => {
-
+const fetchAudits = async (page?: number, force: boolean = false) => {
   const targetPage = typeof page === 'number' ? page : adminAuditStore.pagination.currentPage;
-
   try {
-
-    await adminAuditStore.fetchAudits(targetPage);
-
+    await adminAuditStore.fetchAudits(targetPage, 10, force);
   } catch (error: any) {
-
     toast.error('获取审核列表失败', error.message);
-
   }
-
 };
-
-
 
 const handlePageChange = (page: number) => {
-
   fetchAudits(page);
-
 };
-
-
 
 const confirmApprove = (audit: Audit) => {
-
   selectedAudit.value = audit;
-
   showApproveModal.value = true;
-
 };
-
-
 
 const handleApprove = async () => {
-
   if (!selectedAudit.value) return;
-
   try {
-
     await api.patch(`/registrations/${selectedAudit.value.auditCode}`);
-
     toast.success('审核已通过');
-
     showApproveModal.value = false;
-
     await fetchAudits();
-
   } catch (error: any) {
-
     toast.error('操作失败', error.message);
-
   }
-
 };
-
-
 
 const confirmBan = (audit: Audit) => {
 

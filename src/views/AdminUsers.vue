@@ -10,12 +10,11 @@
           </h1>
           <BaseButton 
             variant="secondary"
-            @click="fetchUsers(0)" 
+            @click="fetchUsers(0, true)" 
             :loading="adminUserStore.loading"
             class="animate-slide-up animate-delay-50"
           >
             <RotateCw v-if="!adminUserStore.loading" class="h-4 w-4 mr-2" />
-            <RotateCw v-else class="h-4 w-4 mr-2 animate-spin" />
             刷新列表
           </BaseButton>
         </div>
@@ -368,10 +367,10 @@ const passwordForm = ref({
   confirmPassword: ''
 });
 
-const fetchUsers = async (page?: number) => {
+const fetchUsers = async (page?: number, force: boolean = false) => {
   const targetPage = typeof page === 'number' ? page : adminUserStore.pagination.currentPage;
   try {
-    await adminUserStore.fetchUsers(targetPage);
+    await adminUserStore.fetchUsers(targetPage, 10, force);
   } catch (error: any) {
     toast.error('获取用户列表失败', error.message);
   }

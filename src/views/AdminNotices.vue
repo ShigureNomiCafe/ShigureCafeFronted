@@ -13,7 +13,7 @@
               <Plus class="h-4 w-4 mr-2" />
               发布公告
             </BaseButton>
-            <BaseButton variant="secondary" @click="fetchNotices" :loading="noticeStore.loading" class="animate-slide-up animate-delay-50">
+            <BaseButton variant="secondary" @click="fetchNotices(0, true)" :loading="noticeStore.loading" class="animate-slide-up animate-delay-50">
               <RotateCw v-if="!noticeStore.loading" class="h-4 w-4 mr-2" />
               刷新
             </BaseButton>
@@ -191,10 +191,10 @@ const showDeleteModal = ref(false);
 const selectedNotice = ref<Notice | null>(null);
 const toast = useToastStore();
 
-const fetchNotices = async (page = 0) => {
+const fetchNotices = async (page = 0, force = false) => {
   const minTimer = new Promise(resolve => setTimeout(resolve, 600));
   try {
-    await noticeStore.fetchNotices(page);
+    await noticeStore.fetchNotices(page, 10, force);
     await minTimer;
   } catch (error: any) {
     toast.error('获取公告失败', error.message);

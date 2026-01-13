@@ -1,18 +1,20 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '../stores/auth';
-import Login from '../views/Login.vue';
-import Register from '../views/Register.vue';
-import ForgotPassword from '../views/ForgotPassword.vue';
-import Dashboard from '../views/Dashboard.vue';
-import AllNotices from '../views/AllNotices.vue';
-import NoticeDetail from '../views/NoticeDetail.vue';
-import Profile from '../views/Profile.vue';
-import Security from '../views/Security.vue';
-import AdminUsers from '../views/AdminUsers.vue';
-import AdminAudits from '../views/AdminAudits.vue';
-import AdminNotices from '../views/AdminNotices.vue';
-import NoticeEditor from '../views/NoticeEditor.vue';
-import AuthWrapper from '../views/AuthWrapper.vue';
+
+// Lazy load view components
+const Login = () => import('../views/Login.vue');
+const Register = () => import('../views/Register.vue');
+const ForgotPassword = () => import('../views/ForgotPassword.vue');
+const Dashboard = () => import('../views/Dashboard.vue');
+const AllNotices = () => import('../views/AllNotices.vue');
+const NoticeDetail = () => import('../views/NoticeDetail.vue');
+const Profile = () => import('../views/Profile.vue');
+const Security = () => import('../views/Security.vue');
+const AdminUsers = () => import('../views/AdminUsers.vue');
+const AdminAudits = () => import('../views/AdminAudits.vue');
+const AdminNotices = () => import('../views/AdminNotices.vue');
+const NoticeEditor = () => import('../views/NoticeEditor.vue');
+const AuthWrapper = () => import('../views/AuthWrapper.vue');
 
 const router = createRouter({
   history: createWebHistory(),
@@ -109,8 +111,12 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore();
 
-  if (auth.token && !auth.user) {
-    await auth.fetchCurrentUser();
+  if (auth.token) {
+    if (!auth.user) {
+      await auth.fetchCurrentUser();
+    } else {
+      auth.fetchCurrentUser(); // Run in background, don't await
+    }
   }
 
   const isAuthenticated = !!auth.token;

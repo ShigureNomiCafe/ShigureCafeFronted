@@ -1,5 +1,6 @@
 import { defineStore } from 'pinia';
 import api from '../api';
+import { useCacheStore } from './cache';
 
 interface User {
   username: string;
@@ -31,7 +32,24 @@ export const useAdminUserStore = defineStore('adminUser', {
     lastUpdated: localStorage.getItem('admin_users_last_updated') || null,
   }),
   actions: {
-    async fetchUsers(page = 0, size = 10) {
+    async fetchUsers(page = 0, size = 10, force = false) {
+      const cacheStore = useCacheStore();
+      // Check timestamp if not forcing and we have cached data for the same page
+      if (!force && this.pagination.currentPage === page && this.pagination.pageSize === size && this.lastUpdated) {
+        try {
+          const timestamps = await cacheStore.getTimestamps();
+          const backendTime = new Date(timestamps.users).getTime();
+          const localTime = new Date(this.lastUpdated).getTime();
+
+          if (backendTime <= localTime) {
+            console.log('Users cache is up to date');
+            return;
+          }
+        } catch (error) {
+          console.warn('Failed to fetch cache timestamps, falling back to full fetch', error);
+        }
+      }
+
       this.loading = true;
       try {
         const data = await api.get<PagedResponse<User>>('/users', {
@@ -49,12 +67,10 @@ export const useAdminUserStore = defineStore('adminUser', {
         
         this.lastUpdated = new Date().toISOString();
         
-        // Cache the first page for immediate display on next visit
-        if (page === 0) {
-          localStorage.setItem('admin_users_cache', JSON.stringify(this.users));
-          localStorage.setItem('admin_users_pagination', JSON.stringify(this.pagination));
-          localStorage.setItem('admin_users_last_updated', this.lastUpdated);
-        }
+        // Always cache the currently viewed page
+        localStorage.setItem('admin_users_cache', JSON.stringify(this.users));
+        localStorage.setItem('admin_users_pagination', JSON.stringify(this.pagination));
+        localStorage.setItem('admin_users_last_updated', this.lastUpdated);
       } catch (error) {
         console.error('Failed to fetch users', error);
         throw error;
