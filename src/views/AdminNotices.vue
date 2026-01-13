@@ -4,20 +4,72 @@
 
     <div class="py-10 transition-all duration-500 ease-in-out">
       <header>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+          <h1 
+            v-if="!isSearchExpanded"
+            class="text-2xl sm:text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up"
+          >
             公告管理
           </h1>
-          <div class="flex space-x-3">
-            <BaseButton @click="$router.push('/admin/notices/new')" class="animate-slide-up animate-delay-50">
-              <Plus class="h-4 w-4 mr-2" />
-              发布公告
-            </BaseButton>
-            <BaseButton variant="secondary" @click="fetchNotices(0, true)" :loading="noticeStore.loading"
-              class="animate-slide-up animate-delay-50">
-              <RotateCw v-if="!noticeStore.loading" class="h-4 w-4 mr-2" />
-              刷新
-            </BaseButton>
+
+          <div 
+            class="flex items-center transition-all duration-300 ease-in-out" 
+            :class="isSearchExpanded ? 'flex-1 justify-end' : 'space-x-2 sm:space-x-4'"
+          >
+            <!-- Search Box -->
+            <div 
+              class="relative flex items-center transition-all duration-300 ease-in-out" 
+              :class="isSearchExpanded ? 'w-full' : 'w-auto'"
+            >
+              <!-- Mobile Search Toggle -->
+              <button 
+                @click="isSearchExpanded = true"
+                v-if="!isSearchExpanded"
+                class="sm:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors animate-slide-up animate-delay-50"
+              >
+                <Search class="h-5 w-5" />
+              </button>
+
+              <!-- Search Input Container -->
+              <div 
+                class="relative transition-all duration-300 ease-in-out"
+                :class="[
+                  isSearchExpanded ? 'w-full opacity-100' : 'hidden sm:block sm:w-64 opacity-100'
+                ]"
+              >
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search class="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  v-model="searchQuery"
+                  ref="searchInput"
+                  type="text"
+                  placeholder="搜索公告标题/作者..."
+                  class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200"
+                  @keyup.esc="isSearchExpanded = false"
+                />
+                <!-- Mobile Close button -->
+                <button 
+                  v-if="isSearchExpanded"
+                  @click="isSearchExpanded = false"
+                  class="sm:hidden absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <X class="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            <div v-show="!isSearchExpanded" class="flex space-x-2 sm:space-x-3">
+              <BaseButton @click="$router.push('/admin/notices/new')" class="animate-slide-up animate-delay-50">
+                <Plus class="h-4 w-4 sm:mr-2" />
+                <span class="hidden sm:inline">发布公告</span>
+              </BaseButton>
+              <BaseButton variant="secondary" @click="fetchNotices(0, true)" :loading="noticeStore.loading"
+                class="animate-slide-up animate-delay-50">
+                <RotateCw v-if="!noticeStore.loading" class="h-4 w-4 sm:mr-2" />
+                <span class="hidden sm:inline">刷新</span>
+              </BaseButton>
+            </div>
           </div>
         </div>
       </header>
@@ -34,15 +86,16 @@
                   </div>
 
                   <!-- Empty State -->
-                  <div v-else-if="noticeStore.currentNotices.length === 0"
+                  <div v-else-if="filteredNotices.length === 0"
                     class="p-12 text-center text-gray-500 flex flex-col items-center">
                     <Megaphone class="h-12 w-12 text-gray-300 mb-3" />
-                    <p>暂无公告数据</p>
+                    <p>{{ searchQuery ? '未找到匹配的公告' : '暂无公告数据' }}</p>
                   </div>
 
                   <!-- Notices Table -->
-                  <div v-else class="overflow-x-auto">
-                    <table class="min-w-full divide-y divide-gray-200">
+                  <div v-else>
+                    <CustomScrollContainer>
+                      <table class="min-w-full divide-y divide-gray-200">
                       <thead class="bg-gray-50/50">
                         <tr>
                           <th scope="col"
@@ -63,7 +116,7 @@
                         </tr>
                       </thead>
                       <tbody class="bg-white divide-y divide-gray-100">
-                        <tr v-for="notice in noticeStore.currentNotices" :key="notice.id"
+                        <tr v-for="notice in filteredNotices" :key="notice.id"
                           class="hover:bg-gray-50/80 transition-colors duration-150">
                           <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
@@ -73,12 +126,12 @@
                               </span>
                               <div class="text-sm font-medium text-gray-900 truncate max-w-[200px]"
                                 :title="notice.title">
-                                {{ notice.title.length > 30 ? notice.title.substring(0, 30) + '...' : notice.title }}
+                                {{ truncateText(notice.title) }}
                               </div>
                             </div>
                           </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ notice.authorNickname }}
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" :title="notice.authorNickname">
+                            {{ truncateText(notice.authorNickname) }}
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                             {{ new Date(notice.createdAt).toLocaleString() }}
@@ -101,16 +154,17 @@
                         </tr>
                       </tbody>
                     </table>
+                    </CustomScrollContainer>
 
                     <!-- Pagination Controls -->
                     <div class="px-6 py-4 bg-gray-50/30 border-t border-gray-100 flex items-center justify-between">
                       <div class="flex-1 flex justify-between sm:hidden">
-                        <BaseButton variant="secondary" :disabled="noticeStore.currentPage === 0"
+                        <BaseButton variant="secondary" :disabled="searchQuery ? true : noticeStore.currentPage === 0"
                           @click="fetchNotices(noticeStore.currentPage - 1)">
                           上一页
                         </BaseButton>
                         <BaseButton variant="secondary"
-                          :disabled="noticeStore.currentPage >= noticeStore.totalPages - 1"
+                          :disabled="searchQuery ? true : noticeStore.currentPage >= noticeStore.totalPages - 1"
                           @click="fetchNotices(noticeStore.currentPage + 1)">
                           下一页
                         </BaseButton>
@@ -118,34 +172,41 @@
                       <div class="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
                         <div>
                           <p class="text-sm text-gray-700">
-                            显示第 <span class="font-medium">{{ noticeStore.currentPage * noticeStore.pageSize + 1
-                              }}</span> 到第 <span class="font-medium">{{ Math.min((noticeStore.currentPage + 1) *
-                                noticeStore.pageSize, noticeStore.totalElements) }}</span> 条，共 <span
-                              class="font-medium">{{ noticeStore.totalElements }}</span> 条结果
+                            显示第 <span class="font-medium">{{ (searchQuery ? filteredNotices.length > 0 : noticeStore.totalElements > 0) ? (searchQuery ? 1 : noticeStore.currentPage * noticeStore.pageSize + 1) : 0 }}</span> 到第 <span class="font-medium">{{ searchQuery ? filteredNotices.length : Math.min((noticeStore.currentPage + 1) * noticeStore.pageSize, noticeStore.totalElements) }}</span> 条，共 <span
+                              class="font-medium">{{ searchQuery ? filteredNotices.length : noticeStore.totalElements }}</span> 条结果
                           </p>
                         </div>
                         <div>
                           <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
                             aria-label="Pagination">
                             <button @click="fetchNotices(noticeStore.currentPage - 1)"
-                              :disabled="noticeStore.currentPage === 0"
+                              :disabled="searchQuery ? true : noticeStore.currentPage === 0"
                               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                               <span class="sr-only">Previous</span>
                               <ChevronLeft class="h-5 w-5" />
                             </button>
 
-                            <button v-for="page in noticeStore.totalPages" :key="page" @click="fetchNotices(page - 1)"
-                              :class="[
-                                noticeStore.currentPage === page - 1
-                                  ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
-                                  : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
-                                'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
-                              ]">
-                              {{ page }}
-                            </button>
+                            <template v-if="searchQuery">
+                              <button
+                                class="z-10 bg-indigo-50 border-indigo-500 text-indigo-600 relative inline-flex items-center px-4 py-2 border text-sm font-medium"
+                              >
+                                1
+                              </button>
+                            </template>
+                            <template v-else>
+                              <button v-for="page in noticeStore.totalPages" :key="page" @click="fetchNotices(page - 1)"
+                                :class="[
+                                  noticeStore.currentPage === page - 1
+                                    ? 'z-10 bg-indigo-50 border-indigo-500 text-indigo-600'
+                                    : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50',
+                                  'relative inline-flex items-center px-4 py-2 border text-sm font-medium'
+                                ]">
+                                {{ page }}
+                              </button>
+                            </template>
 
                             <button @click="fetchNotices(noticeStore.currentPage + 1)"
-                              :disabled="noticeStore.currentPage >= noticeStore.totalPages - 1"
+                              :disabled="searchQuery ? true : noticeStore.currentPage >= noticeStore.totalPages - 1"
                               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
                               <span class="sr-only">Next</span>
                               <ChevronRight class="h-5 w-5" />
@@ -187,20 +248,43 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import BaseButton from '../components/BaseButton.vue';
 import Modal from '../components/Modal.vue';
+import CustomScrollContainer from '../components/CustomScrollContainer.vue';
 import api from '../api';
 import { useNoticeStore, type Notice } from '../stores/notice';
 import { useToastStore } from '../stores/toast';
-import { Plus, RotateCw, Loader2, Megaphone, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-vue-next';
+import { truncateText } from '../utils/formatters';
+import { Plus, RotateCw, Loader2, Megaphone, Edit2, Trash2, ChevronLeft, ChevronRight, Search, X } from 'lucide-vue-next';
 
 const noticeStore = useNoticeStore();
+const searchQuery = ref('');
+const isSearchExpanded = ref(false);
+const searchInput = ref<HTMLInputElement | null>(null);
 const showDeleteModal = ref(false);
 const selectedNotice = ref<Notice | null>(null);
 const toast = useToastStore();
+
+watch(isSearchExpanded, (val) => {
+  if (val) {
+    nextTick(() => {
+      searchInput.value?.focus();
+    });
+  }
+});
+
+const filteredNotices = computed(() => {
+  const notices = noticeStore.currentNotices;
+  if (!searchQuery.value) return notices;
+  const q = searchQuery.value.toLowerCase();
+  return notices.filter(notice => 
+    notice.title.toLowerCase().includes(q) ||
+    notice.authorNickname?.toLowerCase().includes(q)
+  );
+});
 
 const fetchNotices = async (page = 0, force = false) => {
   const minTimer = new Promise(resolve => setTimeout(resolve, 600));

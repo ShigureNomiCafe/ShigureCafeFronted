@@ -92,16 +92,17 @@
                   </div>
 
                   <!-- Audits Table -->
-                  <div v-else class="overflow-x-auto relative">
+                  <div v-else class="relative">
                     <!-- Loading overlay for refresh -->
                     <div v-if="adminAuditStore.loading" class="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10 flex items-center justify-center transition-all duration-300">
                       <Loader2 class="h-8 w-8 animate-spin text-indigo-500" />
                     </div>
 
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <CustomScrollContainer>
+                      <table class="min-w-full divide-y divide-gray-200">
                       <thead class="bg-gray-50/50">
                         <tr>
-                          <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户名</th>
+                          <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户</th>
                           <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">电子邮箱</th>
                           <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">审核码</th>
                           <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">状态</th>
@@ -116,18 +117,18 @@
                                 {{ (audit.nickname || audit.username).substring(0, 2).toUpperCase() }}
                               </div>
                               <div>
-                                <div class="text-sm font-medium text-gray-900">{{ audit.nickname || audit.username }}</div>
-                                <div class="text-xs text-gray-400">@{{ audit.username }}</div>
+                                <div class="text-sm font-medium text-gray-900" :title="audit.nickname || audit.username">{{ truncateText(audit.nickname || audit.username) }}</div>
+                                <div class="text-xs text-gray-400" :title="'@' + audit.username">@{{ truncateText(audit.username) }}</div>
                               </div>
                             </div>
                           </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {{ audit.email }}
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" :title="audit.email">
+                            {{ truncateText(audit.email) }}
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap">
                              <div class="flex items-center space-x-2">
-                               <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800 font-mono">
-                                 {{ audit.auditCode }}
+                               <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-sm font-medium bg-gray-100 text-gray-800 font-mono" :title="audit.auditCode">
+                                 {{ truncateText(audit.auditCode) }}
                                </span>
                                <button 
                                  @click="copyToClipboard(audit.auditCode)" 
@@ -151,24 +152,23 @@
                               {{ audit.isExpired ? '已过期' : formatStatus(audit.status) }}
                             </span>
                           </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <BaseButton 
+                          <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                            <button 
                               v-if="!audit.isExpired && audit.status !== 'ACTIVE'"
                               @click="confirmApprove(audit)" 
-                              label="通过"
-                              class="inline-flex items-center px-3 py-1.5 text-xs rounded-full"
+                              class="text-green-600 hover:text-green-900 bg-green-50 hover:bg-green-100 p-1.5 rounded-md transition-colors"
+                              title="通过审核"
                             >
-                              <CheckCircle class="h-3.5 w-3.5 mr-1" />
-                            </BaseButton>
-                            <BaseButton 
+                              <CheckCircle class="h-4 w-4" />
+                            </button>
+                            <button 
                               v-if="!audit.isExpired && audit.status !== 'ACTIVE' && audit.status !== 'BANNED'"
-                              variant="danger"
                               @click="confirmBan(audit)" 
-                              label="封禁"
-                              class="ml-2 inline-flex items-center px-3 py-1.5 text-xs rounded-full"
+                              class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 p-1.5 rounded-md transition-colors"
+                              title="封禁用户"
                             >
-                              <Ban class="h-3.5 w-3.5 mr-1" />
-                            </BaseButton>
+                              <Ban class="h-4 w-4" />
+                            </button>
                             <span v-else class="text-gray-400 text-xs italic">
                               无需操作
                             </span>
@@ -176,16 +176,17 @@
                         </tr>
                       </tbody>
                     </table>
+                    </CustomScrollContainer>
                   </div>
 
                   <!-- Pagination -->
                   <Pagination 
                     v-if="filteredAudits.length > 0"
-                    :current-page="adminAuditStore.pagination.currentPage"
-                    :total-pages="adminAuditStore.pagination.totalPages"
-                    :total-elements="adminAuditStore.pagination.totalElements"
+                    :current-page="searchQuery ? 0 : adminAuditStore.pagination.currentPage"
+                    :total-pages="searchQuery ? Math.ceil(filteredAudits.length / adminAuditStore.pagination.pageSize) : adminAuditStore.pagination.totalPages"
+                    :total-elements="searchQuery ? filteredAudits.length : adminAuditStore.pagination.totalElements"
                     :page-size="adminAuditStore.pagination.pageSize"
-                    :is-last="adminAuditStore.pagination.isLast"
+                    :is-last="searchQuery ? true : adminAuditStore.pagination.isLast"
                     @page-change="handlePageChange"
                     class="bg-gray-50/50 border-t border-gray-100"
                   />
@@ -259,9 +260,10 @@ import { useToastStore } from '../stores/toast';
 
 import { useAdminAuditStore } from '../stores/adminAudit';
 
+import CustomScrollContainer from '../components/CustomScrollContainer.vue';
 import { RotateCw, Loader2, ClipboardList, CheckCircle, Search, X, Copy, Ban } from 'lucide-vue-next';
 
-import { formatStatus } from '../utils/formatters';
+import { formatStatus, truncateText } from '../utils/formatters';
 
 
 

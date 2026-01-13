@@ -4,19 +4,73 @@
 
     <div class="py-10 transition-all duration-500 ease-in-out">
       <header>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
-          <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
+          <h1 
+            v-if="!isSearchExpanded"
+            class="text-2xl sm:text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up"
+          >
             用户管理
           </h1>
-          <BaseButton 
-            variant="secondary"
-            @click="fetchUsers(0, true)" 
-            :loading="adminUserStore.loading"
-            class="animate-slide-up animate-delay-50"
+
+          <div 
+            class="flex items-center transition-all duration-300 ease-in-out" 
+            :class="isSearchExpanded ? 'flex-1 justify-end' : 'space-x-2 sm:space-x-4'"
           >
-            <RotateCw v-if="!adminUserStore.loading" class="h-4 w-4 mr-2" />
-            刷新列表
-          </BaseButton>
+            <!-- Search Box -->
+            <div 
+              class="relative flex items-center transition-all duration-300 ease-in-out" 
+              :class="isSearchExpanded ? 'w-full' : 'w-auto'"
+            >
+              <!-- Mobile Search Toggle -->
+              <button 
+                @click="isSearchExpanded = true"
+                v-if="!isSearchExpanded"
+                class="sm:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors animate-slide-up animate-delay-50"
+              >
+                <Search class="h-5 w-5" />
+              </button>
+
+              <!-- Search Input Container -->
+              <div 
+                class="relative transition-all duration-300 ease-in-out"
+                :class="[
+                  isSearchExpanded ? 'w-full opacity-100' : 'hidden sm:block sm:w-64 opacity-100'
+                ]"
+              >
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search class="h-4 w-4 text-gray-400" />
+                </div>
+                <input
+                  v-model="searchQuery"
+                  ref="searchInput"
+                  type="text"
+                  placeholder="搜索用户名/邮箱/MC..."
+                  class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition-all duration-200"
+                  @keyup.esc="isSearchExpanded = false"
+                />
+                <!-- Mobile Close button -->
+                <button 
+                  v-if="isSearchExpanded"
+                  @click="isSearchExpanded = false"
+                  class="sm:hidden absolute inset-y-0 right-0 pr-3 flex items-center"
+                >
+                  <X class="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                </button>
+              </div>
+            </div>
+
+            <!-- Refresh Button -->
+            <BaseButton 
+              v-show="!isSearchExpanded"
+              variant="secondary"
+              @click="fetchUsers(0, true)" 
+              :loading="adminUserStore.loading"
+              class="animate-slide-up animate-delay-50"
+            >
+              <RotateCw v-if="!adminUserStore.loading" class="h-4 w-4 sm:mr-2" />
+              <span class="hidden sm:inline">刷新列表</span>
+            </BaseButton>
+          </div>
         </div>
       </header>
       
@@ -32,22 +86,23 @@
                   </div>
 
                   <!-- Empty State -->
-                  <div v-else-if="adminUserStore.users.length === 0" class="p-12 text-center text-gray-500 flex flex-col items-center">
+                  <div v-else-if="filteredUsers.length === 0" class="p-12 text-center text-gray-500 flex flex-col items-center">
                     <Users class="h-12 w-12 text-gray-300 mb-3" />
-                    <p>暂无用户数据</p>
+                    <p>{{ searchQuery ? '未找到匹配的记录' : '暂无用户数据' }}</p>
                   </div>
 
                   <!-- Users Table -->
-                  <div v-else class="overflow-x-auto relative">
+                  <div v-else class="relative">
                     <!-- Loading overlay for refresh -->
                     <div v-if="adminUserStore.loading" class="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10 flex items-center justify-center transition-all duration-300">
                       <Loader2 class="h-8 w-8 animate-spin text-indigo-500" />
                     </div>
 
-                    <table class="min-w-full divide-y divide-gray-200">
+                    <CustomScrollContainer>
+                      <table class="min-w-full divide-y divide-gray-200">
                       <thead class="bg-gray-50/50">
                         <tr>
-                          <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户 / 昵称</th>
+                          <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户</th>
                           <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">电子邮箱</th>
                           <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Minecraft</th>
                           <th scope="col" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">用户角色</th>
@@ -57,7 +112,7 @@
                         </tr>
                       </thead>
                       <tbody class="bg-white divide-y divide-gray-100">
-                        <tr v-for="user in adminUserStore.users" :key="user.username" class="hover:bg-gray-50/80 transition-colors duration-150">
+                        <tr v-for="user in filteredUsers" :key="user.username" class="hover:bg-gray-50/80 transition-colors duration-150">
                           <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
                               <div 
@@ -66,12 +121,12 @@
                                 {{ getAvatarChar(user) }}
                               </div>
                               <div class="ml-3">
-                                <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
-                                <div class="text-xs text-gray-500">{{ user.nickname || '未设置昵称' }}</div>
+                                <div class="text-sm font-medium text-gray-900" :title="user.nickname || '未设置昵称'">{{ truncateText(user.nickname || '未设置昵称') }}</div>
+                                <div class="text-xs text-gray-500" :title="'@' + user.username">@{{ truncateText(user.username) }}</div>
                               </div>
                             </div>
                           </td>
-                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ user.email }}</td>
+                          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500" :title="user.email">{{ truncateText(user.email) }}</td>
                           <td class="px-6 py-4 whitespace-nowrap">
                             <div v-if="user.minecraftUuid" class="flex flex-col">
                               <span class="text-sm font-medium text-gray-900">{{ user.minecraftUsername }}</span>
@@ -125,16 +180,17 @@
                         </tr>
                       </tbody>
                     </table>
+                    </CustomScrollContainer>
                   </div>
 
                   <!-- Pagination -->
                   <Pagination 
-                    v-if="adminUserStore.users.length > 0"
-                    :current-page="adminUserStore.pagination.currentPage"
-                    :total-pages="adminUserStore.pagination.totalPages"
-                    :total-elements="adminUserStore.pagination.totalElements"
+                    v-if="filteredUsers.length > 0"
+                    :current-page="searchQuery ? 0 : adminUserStore.pagination.currentPage"
+                    :total-pages="searchQuery ? Math.ceil(filteredUsers.length / adminUserStore.pagination.pageSize) : adminUserStore.pagination.totalPages"
+                    :total-elements="searchQuery ? filteredUsers.length : adminUserStore.pagination.totalElements"
                     :page-size="adminUserStore.pagination.pageSize"
-                    :is-last="adminUserStore.pagination.isLast"
+                    :is-last="searchQuery ? true : adminUserStore.pagination.isLast"
                     @page-change="handlePageChange"
                     class="bg-gray-50/50 border-t border-gray-100"
                   />
@@ -293,19 +349,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import BaseButton from '../components/BaseButton.vue';
 import BaseInput from '../components/BaseInput.vue';
 import Modal from '../components/Modal.vue';
 import Pagination from '../components/Pagination.vue';
+import CustomScrollContainer from '../components/CustomScrollContainer.vue';
 import api from '../api';
 import { useToastStore } from '../stores/toast';
 import { useAuthStore } from '../stores/auth';
 import { useAdminUserStore } from '../stores/adminUser';
-import { Edit2, KeyRound, RotateCw, Loader2, Users, Trash2, ChevronDown, Check, Ban, UserCheck, ShieldOff } from 'lucide-vue-next';
-import { formatStatus, formatRole } from '../utils/formatters';
+import { Edit2, KeyRound, RotateCw, Loader2, Users, Trash2, ChevronDown, Check, Ban, UserCheck, ShieldOff, Search, X } from 'lucide-vue-next';
+import { formatStatus, formatRole, truncateText } from '../utils/formatters';
 
 interface User {
   username: string;
@@ -321,6 +378,9 @@ interface User {
 }
 
 const adminUserStore = useAdminUserStore();
+const searchQuery = ref('');
+const isSearchExpanded = ref(false);
+const searchInput = ref<HTMLInputElement | null>(null);
 const showEditModal = ref(false);
 const showPasswordModal = ref(false);
 const showDeleteModal = ref(false);
@@ -331,6 +391,27 @@ const showRoleDropdown = ref(false);
 const selectedUser = ref<User | null>(null);
 const toast = useToastStore();
 const auth = useAuthStore();
+
+watch(isSearchExpanded, (val) => {
+  if (val) {
+    nextTick(() => {
+      searchInput.value?.focus();
+    });
+  }
+});
+
+const filteredUsers = computed(() => {
+  const users = adminUserStore.users;
+  if (!searchQuery.value) return users;
+  const q = searchQuery.value.toLowerCase();
+  return users.filter(user => 
+    user.username.toLowerCase().includes(q) ||
+    user.nickname?.toLowerCase().includes(q) ||
+    user.email.toLowerCase().includes(q) ||
+    user.minecraftUsername?.toLowerCase().includes(q) ||
+    user.minecraftUuid?.toLowerCase().includes(q)
+  );
+});
 
 const getAvatarChar = (user: User) => {
   const name = user.nickname || user.username || '?';

@@ -16,3 +16,11 @@ export const formatRole = (role: string | undefined) => {
   };
   return map[role] || role;
 };
+
+export const truncateText = (text: string | null | undefined, length = 30) => {
+  if (!text) return '';
+  if (text.length > length) {
+    return text.substring(0, length) + '...';
+  }
+  return text;
+};
