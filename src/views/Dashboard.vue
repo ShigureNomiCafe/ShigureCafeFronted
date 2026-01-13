@@ -15,9 +15,7 @@
           <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
             欢迎回来, <span class="text-indigo-600">{{ auth.user?.nickname || auth.user?.username || '用户' }}</span>
           </h1>
-          <div class="text-sm text-gray-500 animate-slide-up animate-delay-50">
-            今天是 {{ new Date().toLocaleDateString() }}
-          </div>
+            <p class="text-sm text-gray-500 mt-1">今天是 {{ new Date().toLocaleDateString() }}</p>
         </div>
       </header>
       <main>
@@ -168,7 +166,7 @@
                </router-link>
              </div>
              
-             <div v-if="noticeStore.loading && noticeStore.notices.length === 0" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400 animate-slide-up" :class="getNoticeDelay(0)">
+             <div v-if="noticeStore.loading && noticeStore.currentNotices.length === 0" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400 animate-slide-up" :class="getNoticeDelay(0)">
                 <Loader2 class="h-8 w-8 animate-spin" />
              </div>
              <div v-else-if="displayedNotices.length === 0" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500 animate-slide-up" :class="getNoticeDelay(0)">
@@ -262,8 +260,9 @@ const noticeStore = useNoticeStore();
 const pageLoading = ref(true);
 
 const displayedNotices = computed(() => {
-  const pinned = noticeStore.notices.filter(n => n.pinned);
-  const unpinned = noticeStore.notices.filter(n => !n.pinned).slice(0, 3);
+  const notices = noticeStore.currentNotices;
+  const pinned = notices.filter(n => n.pinned);
+  const unpinned = notices.filter(n => !n.pinned).slice(0, 3);
   return [...pinned, ...unpinned];
 });
 

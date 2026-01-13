@@ -106,7 +106,7 @@
                         <div class="mt-10 flex items-center justify-between border-t border-gray-100 pt-6">
                            <div class="flex items-center text-sm text-gray-500">
                              <div class="mr-3 h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 font-bold">
-                                {{ notice.authorNickname.charAt(0) }}
+                                {{ notice.authorNickname?.charAt(0) || '?' }}
                              </div>
                              <div>
                                <span class="font-bold text-gray-900 block">{{ notice.authorNickname }}</span>
@@ -163,7 +163,9 @@ const handleReaction = async (emoji: string) => {
   if (!notice.value) return;
   try {
     const updatedNotice = await noticeStore.toggleReaction(notice.value.id, emoji);
-    notice.value = updatedNotice;
+    if (updatedNotice) {
+      notice.value = updatedNotice;
+    }
   } catch (error) {
     console.error('Failed to toggle reaction', error);
   }

@@ -1,6 +1,5 @@
 import { defineStore } from 'pinia';
 import api from '../api';
-import { useCacheStore } from './cache';
 
 interface Audit {
   username: string;
@@ -18,43 +17,44 @@ interface PagedResponse<T> {
   totalElements: number;
   totalPages: number;
   last: boolean;
+  timestamp: number;
 }
 
 export const useAdminAuditStore = defineStore('adminAudit', {
-  state: () => ({
-    audits: JSON.parse(localStorage.getItem('admin_audits_cache') || '[]') as Audit[],
-    pagination: JSON.parse(localStorage.getItem('admin_audits_pagination') || '{"currentPage":0,"pageSize":10,"totalElements":0,"totalPages":0,"isLast":true}'),
-    loading: false,
-    lastUpdated: localStorage.getItem('admin_audits_last_updated') || null,
-  }),
+  state: () => {
+    const rawLastUpdated = localStorage.getItem('admin_audits_last_updated');
+    let lastUpdated: number | null = null;
+    if (rawLastUpdated) {
+        lastUpdated = isNaN(Number(rawLastUpdated)) 
+            ? new Date(rawLastUpdated).getTime() 
+            : Number(rawLastUpdated);
+    }
+
+    return {
+      audits: JSON.parse(localStorage.getItem('admin_audits_cache') || '[]') as Audit[],
+      pagination: JSON.parse(localStorage.getItem('admin_audits_pagination') || '{"currentPage":0,"pageSize":10,"totalElements":0,"totalPages":0,"isLast":true}'),
+      loading: false,
+      lastUpdated,
+    };
+  },
   actions: {
     async fetchAudits(page = 0, size = 10, force = false) {
-      const cacheStore = useCacheStore();
-      // Check timestamp if not forcing and we have cached data for the same page
-      if (!force && this.pagination.currentPage === page && this.pagination.pageSize === size && this.lastUpdated) {
-        try {
-          const timestamps = await cacheStore.getTimestamps();
-          const backendTime = new Date(timestamps.audits).getTime();
-          const localTime = new Date(this.lastUpdated).getTime();
-
-          if (backendTime <= localTime) {
-            console.log('Audits cache is up to date');
-            return;
-          }
-        } catch (error) {
-          console.warn('Failed to fetch cache timestamps, falling back to full fetch', error);
-        }
-      }
-
+      // Logic removed to use backend t parameter
+      
       this.loading = true;
       try {
-        const data = await api.get<PagedResponse<Audit>>('/registrations', {
-          params: {
+        const params: any = {
             page,
             size,
             sortBy: 'expiryDate',
             direction: 'desc'
-          }
+        };
+        if (!force && this.pagination.currentPage === page && this.pagination.pageSize === size && this.lastUpdated) {
+             params.t = this.lastUpdated;
+        }
+
+        const data = await api.get<PagedResponse<Audit>>('/registrations', {
+          params
         });
         
         this.audits = data.content;
@@ -66,12 +66,16 @@ export const useAdminAuditStore = defineStore('adminAudit', {
           isLast: data.last
         };
         
-        this.lastUpdated = new Date().toISOString();
+        this.lastUpdated = data.timestamp;
         
         localStorage.setItem('admin_audits_cache', JSON.stringify(this.audits));
         localStorage.setItem('admin_audits_pagination', JSON.stringify(this.pagination));
-        localStorage.setItem('admin_audits_last_updated', this.lastUpdated);
-      } catch (error) {
+        localStorage.setItem('admin_audits_last_updated', this.lastUpdated.toString());
+      } catch (error: any) {
+        if (error.response && error.response.status === 304) {
+             console.log('Audits cache is up to date');
+             return;
+        }
         console.error('Failed to fetch audits', error);
         throw error;
       } finally {

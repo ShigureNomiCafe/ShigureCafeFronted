@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia';
 import api from '../api';
 import { jwtDecode } from 'jwt-decode';
-import { useCacheStore } from './cache';
 
 interface User {
   username: string;
@@ -34,9 +33,9 @@ export const useAuthStore = defineStore('auth', {
   state: () => {
     const cachedUser = localStorage.getItem('auth_user_cache');
     return {
-      token: localStorage.getItem('token') || null,
-      user: cachedUser ? JSON.parse(cachedUser) : null as User | null,
-      lastUpdated: localStorage.getItem('auth_user_last_updated') || null,
+      token: localStorage.getItem('token'),
+      user: (cachedUser ? JSON.parse(cachedUser) : null) as User | null,
+      lastUpdated: localStorage.getItem('auth_user_last_updated') as number | null,
       twoFactorRequired: false,
       hasTotp: false,
       hasEmail2fa: false,
@@ -97,25 +96,8 @@ export const useAuthStore = defineStore('auth', {
     },
     async fetchCurrentUser(force: boolean = false) {
       if (!this.token) return;
-      
-      const cacheStore = useCacheStore();
 
-      // Check if we can skip based on timestamp
-      if (!force && this.user && this.lastUpdated) {
-        try {
-          const timestamps = await cacheStore.getTimestamps();
-          const backendTime = new Date(timestamps.users).getTime();
-          const localTime = new Date(this.lastUpdated).getTime();
-          
-          // If backend timestamp is not newer than local, we can skip
-          if (backendTime <= localTime) {
-            console.log('User profile cache is up to date');
-            return;
-          }
-        } catch (error) {
-          console.warn('Failed to fetch cache timestamps for user, proceeding with fetch', error);
-        }
-      }
+      if (!force && this.user) return;
 
       if (this.fetchUserPromise) return this.fetchUserPromise;
 
@@ -123,12 +105,12 @@ export const useAuthStore = defineStore('auth', {
         try {
           const decoded = jwtDecode<JwtPayload>(this.token!);
           const username = decoded.sub;
-          const data = await api.get<User[]>(`/users?username=${username}`);
-          if (data && data.length > 0) {
-            this.user = data[0] ?? null;
-            this.lastUpdated = new Date().toISOString();
+          const data = await api.get<User>(`/users/${username}`);
+          if (data) {
+            this.user = data;
+            this.lastUpdated = Date.now();
             localStorage.setItem('auth_user_cache', JSON.stringify(this.user));
-            localStorage.setItem('auth_user_last_updated', this.lastUpdated);
+            localStorage.setItem('auth_user_last_updated', this.lastUpdated.toString());
           }
         } catch (error) {
           console.error('Failed to fetch user', error);

@@ -22,15 +22,15 @@
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 mt-8">
           <div class="px-4 sm:px-0">
              <Transition name="fade-slide" mode="out-in">
-               <div :key="noticeStore.loading ? 'loading' : (noticeStore.notices.length > 0 ? 'data' : 'empty')">
+               <div :key="noticeStore.loading ? 'loading' : (noticeStore.currentNotices.length > 0 ? 'data' : 'empty')">
                  <div v-if="noticeStore.loading" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400">
                     <Loader2 class="h-8 w-8 animate-spin" />
                  </div>
-                 <div v-else-if="noticeStore.notices.length === 0" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500">
+                 <div v-else-if="noticeStore.currentNotices.length === 0" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500">
                     <p>暂无公告</p>
                  </div>
                  <div v-else class="space-y-6">
-                    <div v-for="(notice, index) in noticeStore.notices" :key="notice.id"
+                    <div v-for="(notice, index) in noticeStore.currentNotices" :key="notice.id"
                       class="animate-slide-up"
                       :style="{ animationDelay: `${(index + 3) * 50}ms` }"
                     >
