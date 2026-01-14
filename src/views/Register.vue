@@ -63,13 +63,9 @@
             show-button
           >
             <template #button>
-              <BaseButton
-                variant="secondary"
-                @click="sendCode"
-                :disabled="sending || countdown > 0"
-                :loading="sending"
-                loading-text="发送中..."
-                :label="countdown > 0 ? `${countdown}s` : '获取验证码'"
+              <VerificationCodeButton
+                :email="form.email"
+                type="REGISTER"
                 class="w-32"
               />
             </template>
@@ -80,6 +76,7 @@
             v-model="form.verificationCode"
             label="验证码"
             placeholder="请输入邮箱验证码"
+            autocomplete="one-time-code"
             required
           />
 
@@ -128,6 +125,7 @@ import { useToastStore } from '../stores/toast';
 import AuthLayout from '../components/AuthLayout.vue';
 import BaseInput from '../components/BaseInput.vue';
 import BaseButton from '../components/BaseButton.vue';
+import VerificationCodeButton from '../components/VerificationCodeButton.vue';
 
 const router = useRouter();
 const toastStore = useToastStore();
@@ -141,8 +139,6 @@ const form = reactive({
 });
 
 const loading = ref(false);
-const sending = ref(false);
-const countdown = ref(0);
 const registrationSuccess = ref(false);
 const auditCode = ref('');
 const copied = ref(false);
@@ -157,39 +153,6 @@ const copyAuditCode = async () => {
     }, 2000);
   } catch (err) {
     toastStore.error('复制失败', '请手动复制审核码');
-  }
-};
-
-const sendCode = async () => {
-  if (!form.email) {
-    toastStore.error('发送失败', '请输入您的邮箱地址');
-    return;
-  }
-  
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(form.email)) {
-    toastStore.error('发送失败', '请输入有效的邮箱地址');
-    return;
-  }
-  
-  // Optimistic UI
-  sending.value = true;
-
-  try {
-    await api.post('/auth/verification-codes', { email: form.email, type: 'REGISTER' });
-    
-    sending.value = false;
-    toastStore.success('发送成功', '验证码已发送至您的邮箱，请注意查收。');
-    countdown.value = 60;
-    const timer = setInterval(() => {
-      countdown.value--;
-      if (countdown.value <= 0) {
-        clearInterval(timer);
-      }
-    }, 1000);
-  } catch (e: any) {
-    toastStore.error('发送失败', e.message || '请求失败，请稍后重试');
-    sending.value = false;
   }
 };
 

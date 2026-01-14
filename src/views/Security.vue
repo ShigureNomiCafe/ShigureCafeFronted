@@ -153,13 +153,9 @@
           show-button
         >
           <template #button>
-            <BaseButton
-              variant="secondary"
-              @click="sendCode"
-              :disabled="sending || countdown > 0"
-              :loading="sending"
-              loading-text="发送中..."
-              :label="countdown > 0 ? `${countdown}s` : '获取验证码'"
+            <VerificationCodeButton
+              :email="newEmailForm.newEmail"
+              type="UPDATE_EMAIL"
               class="w-32"
             />
           </template>
@@ -168,6 +164,7 @@
           v-model="newEmailForm.verificationCode"
           label="验证码"
           placeholder="请输入验证码"
+          autocomplete="one-time-code"
         />
       </div>
       <template #footer>
@@ -212,11 +209,13 @@
 import { ref, onMounted } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useToastStore } from '../stores/toast';
+import { useVerificationCode } from '../utils/useVerificationCode';
 import NavBar from '../components/NavBar.vue';
 import QrcodeVue from 'qrcode.vue';
 import BaseCard from '../components/BaseCard.vue';
 import BaseInput from '../components/BaseInput.vue';
 import BaseButton from '../components/BaseButton.vue';
+import VerificationCodeButton from '../components/VerificationCodeButton.vue';
 import Modal from '../components/Modal.vue';
 import DigitInput from '../components/DigitInput.vue';
 import api from '../api';
@@ -259,8 +258,6 @@ const handleChangePassword = async () => {
 const showEmailModal = ref(false);
 const newEmailForm = ref({ newEmail: '', verificationCode: '' });
 const emailLoading = ref(false);
-const sending = ref(false);
-const countdown = ref(0);
 const toggleLoading = ref(false);
 const toggleEmailLoading = ref(false);
 
@@ -272,28 +269,12 @@ const totpConfirmCode = ref('');
 
 // Email 2FA Activation Logic
 const showEmail2FAModal = ref(false);
-const sending2FA = ref(false);
-const countdown2FA = ref(0);
 const email2FAConfirmCode = ref('');
+const { sending: sending2FA, countdown: countdown2FA, sendCode: sendCodeAction } = useVerificationCode();
 
 const sendEmail2FACode = async () => {
     if (!auth.user?.email) return;
-    sending2FA.value = true;
-    try {
-        await api.post('/auth/verification-codes', { email: auth.user.email, type: '2FA' });
-        toastStore.success('发送成功', '验证码已发送至您的邮箱。');
-        countdown2FA.value = 60;
-        const timer = setInterval(() => {
-            countdown2FA.value--;
-            if (countdown2FA.value <= 0) {
-                clearInterval(timer);
-            }
-        }, 1000);
-    } catch (e: any) {
-        toastStore.error('发送失败', e.message || '系统异常');
-    } finally {
-        sending2FA.value = false;
-    }
+    await sendCodeAction(auth.user.email, '2FA');
 };
 
 const handleToggleEmail2FA = async () => {
@@ -383,38 +364,6 @@ const handleConfirmTotp = async () => {
   } finally {
     totpLoading.value = false;
   }
-};
-
-const sendCode = async () => {
-    if (!newEmailForm.value.newEmail) {
-        toastStore.error('发送失败', '请输入新邮箱地址');
-        return;
-    }
-
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(newEmailForm.value.newEmail)) {
-        toastStore.error('发送失败', '请输入有效的邮箱地址');
-        return;
-    }
-
-    sending.value = true;
-    
-    try {
-        await api.post('/auth/verification-codes', { email: newEmailForm.value.newEmail, type: 'UPDATE_EMAIL' });
-        
-        sending.value = false;
-        toastStore.success('发送成功', '验证码已发送至您的邮箱，请注意查收。');
-        countdown.value = 60;
-        const timer = setInterval(() => {
-            countdown.value--;
-            if (countdown.value <= 0) {
-                clearInterval(timer);
-            }
-        }, 1000);
-    } catch (e: any) {
-        toastStore.error('发送失败', e.message || '请求失败，请稍后重试');
-        sending.value = false;
-    } 
 };
 
 const handleUpdateEmail = async () => {

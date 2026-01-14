@@ -115,7 +115,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-vue-next';
-import BaseButton from './BaseButton.vue';
 
 const props = defineProps<{
   currentPage: number;

@@ -35,13 +35,9 @@
           <DigitInput v-model="twoFactorCode" @complete="handleVerify2FA" />
           
           <div v-if="useEmail" class="mt-4 flex justify-center">
-            <BaseButton
-              variant="secondary"
-              @click="send2FACode"
-              :disabled="sending || countdown > 0"
-              :loading="sending"
-              loading-text="发送中..."
-              :label="countdown > 0 ? `${countdown}s 后重新获取` : '获取验证码'"
+            <VerificationCodeButton
+              :email="auth.twoFactorEmail || ''"
+              type="2FA"
               class="min-w-[140px]"
             />
           </div>
@@ -88,6 +84,7 @@ import AuthLayout from '../components/AuthLayout.vue';
 import BaseInput from '../components/BaseInput.vue';
 import BaseButton from '../components/BaseButton.vue';
 import DigitInput from '../components/DigitInput.vue';
+import VerificationCodeButton from '../components/VerificationCodeButton.vue';
 
 const form = ref({ username: '', password: '' });
 const twoFactorCode = ref('');
@@ -95,8 +92,6 @@ const twoFactorCode = ref('');
 const show2FA = ref(false);
 const useEmail = ref(false);
 const loading = ref(false);
-const sending = ref(false);
-const countdown = ref(0);
 const auth = useAuthStore();
 const router = useRouter();
 const toastStore = useToastStore();
@@ -104,9 +99,6 @@ const toastStore = useToastStore();
 const toggleMethod = () => {
   useEmail.value = !useEmail.value;
   twoFactorCode.value = '';
-  if (useEmail.value) {
-    send2FACode();
-  }
 };
 
 const handleLogin = async () => {
@@ -120,7 +112,6 @@ const handleLogin = async () => {
         useEmail.value = false;
       } else {
         useEmail.value = true;
-        send2FACode();
       }
     } else {
       router.push('/dashboard');
@@ -129,26 +120,6 @@ const handleLogin = async () => {
     toastStore.error('登录失败', e.message || '请检查您的用户名和密码');
   } finally {
     loading.value = false;
-  }
-};
-
-const send2FACode = async () => {
-  if (!auth.twoFactorEmail) return;
-  sending.value = true;
-  try {
-    await auth.send2FACode();
-    toastStore.success('发送成功', '验证码已发送至您的邮箱');
-    countdown.value = 60;
-    const timer = setInterval(() => {
-      countdown.value--;
-      if (countdown.value <= 0) {
-        clearInterval(timer);
-      }
-    }, 1000);
-  } catch (e: any) {
-    toastStore.error('发送失败', e.message || '系统异常，请稍后重试');
-  } finally {
-    sending.value = false;
   }
 };
 

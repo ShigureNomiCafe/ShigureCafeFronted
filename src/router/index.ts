@@ -99,7 +99,7 @@ const router = createRouter({
     },
     { path: '/:pathMatch(.*)*', redirect: '/' }
   ],
-  scrollBehavior(to, from, savedPosition) {
+  scrollBehavior(_to, _from, savedPosition) {
     return new Promise((resolve) => {
       // 延迟 300ms 以匹配 App.vue 中 fade-slide 过渡动画的时间
       // 这样滚动会发生在旧页面淡出之后，新页面淡入之前

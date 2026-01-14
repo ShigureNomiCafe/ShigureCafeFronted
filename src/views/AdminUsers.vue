@@ -3,76 +3,13 @@
     <NavBar />
 
     <div class="py-10 transition-all duration-500 ease-in-out">
-      <header>
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-          <h1 
-            v-if="!isSearchExpanded"
-            class="text-2xl sm:text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up"
-          >
-            用户管理
-          </h1>
-
-          <div 
-            class="flex items-center transition-all duration-300 ease-in-out" 
-            :class="isSearchExpanded ? 'flex-1 justify-end' : 'space-x-2 sm:space-x-4'"
-          >
-            <!-- Search Box -->
-            <div 
-              class="relative flex items-center transition-all duration-300 ease-in-out" 
-              :class="isSearchExpanded ? 'w-full' : 'w-auto'"
-            >
-              <!-- Mobile Search Toggle -->
-              <button 
-                @click="isSearchExpanded = true"
-                v-if="!isSearchExpanded"
-                class="sm:hidden p-2 text-gray-500 hover:bg-gray-100 rounded-full transition-colors animate-slide-up animate-delay-50"
-              >
-                <Search class="h-5 w-5" />
-              </button>
-
-              <!-- Search Input Container -->
-              <div 
-                class="relative transition-all duration-300 ease-in-out animate-slide-up animate-delay-50"
-                :class="[
-                  isSearchExpanded ? 'w-full opacity-100' : 'hidden sm:block sm:w-64 opacity-100'
-                ]"
-              >
-                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search class="h-4 w-4 text-gray-400" />
-                </div>
-                <input
-                  v-model="searchQuery"
-                  ref="searchInput"
-                  type="text"
-                  placeholder="搜索用户名/邮箱/MC..."
-                  class="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:border-blue-500 sm:text-sm transition-all duration-200"
-                  @keyup.esc="isSearchExpanded = false"
-                />
-                <!-- Mobile Close button -->
-                <button 
-                  v-if="isSearchExpanded"
-                  @click="isSearchExpanded = false"
-                  class="sm:hidden absolute inset-y-0 right-0 pr-3 flex items-center"
-                >
-                  <X class="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                </button>
-              </div>
-            </div>
-
-            <!-- Refresh Button -->
-            <BaseButton 
-              v-show="!isSearchExpanded"
-              variant="secondary"
-              @click="fetchUsers(0, true)" 
-              :loading="adminUserStore.loading"
-              class="animate-slide-up animate-delay-50"
-            >
-              <RotateCw v-if="!adminUserStore.loading" class="h-4 w-4 sm:mr-2" />
-              <span class="hidden sm:inline">刷新列表</span>
-            </BaseButton>
-          </div>
-        </div>
-      </header>
+      <AdminPageHeader
+        title="用户管理"
+        v-model="searchQuery"
+        :loading="adminUserStore.loading"
+        search-placeholder="搜索用户名/邮箱/MC..."
+        @refresh="fetchUsers(0, true)"
+      />
       
       <main>
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8">
@@ -118,11 +55,7 @@
                         <tr v-for="user in filteredUsers" :key="user.username" class="hover:bg-gray-50/80 transition-colors duration-150">
                           <td class="px-6 py-4 whitespace-nowrap">
                             <div class="flex items-center">
-                              <div 
-                                :class="[getAvatarColor(user), 'h-9 w-9 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm border-2 border-white ring-2 ring-gray-50 flex-shrink-0']"
-                              >
-                                {{ getAvatarChar(user) }}
-                              </div>
+                              <UserAvatar :name="user.nickname || user.username" />
                               <div class="ml-3">
                                 <div class="text-sm font-medium text-gray-900" :title="user.nickname || '未设置昵称'">{{ truncateText(user.nickname || '未设置昵称') }}</div>
                                 <div class="text-xs text-gray-500" :title="'@' + user.username">@{{ truncateText(user.username) }}</div>
@@ -138,9 +71,7 @@
                             <span v-else class="text-xs text-gray-400 italic">未绑定</span>
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap">
-                            <span :class="roleClass(user.role)" class="px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full">
-                              {{ formatRole(user.role) }}
-                            </span>
+                            <RoleBadge :role="user.role" />
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap">
                             <span :class="[
@@ -151,14 +82,7 @@
                             </span>
                           </td>
                            <td class="px-6 py-4 whitespace-nowrap">
-                            <span :class="[
-                              'px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full',
-                              user.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
-                              user.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' : 
-                              'bg-red-100 text-red-800'
-                            ]">
-                              {{ formatStatus(user.status) }}
-                            </span>
+                            <StatusBadge :status="user.status" />
                           </td>
                           <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
                             <button @click="openEdit(user)" class="text-indigo-600 hover:text-indigo-900 bg-indigo-50 hover:bg-indigo-100 p-1.5 rounded-md transition-colors" title="编辑用户">
@@ -351,7 +275,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed, watch, nextTick } from 'vue';
+import { ref, onMounted, computed } from 'vue';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import BaseButton from '../components/BaseButton.vue';
@@ -359,12 +283,16 @@ import BaseInput from '../components/BaseInput.vue';
 import Modal from '../components/Modal.vue';
 import Pagination from '../components/Pagination.vue';
 import CustomScrollContainer from '../components/CustomScrollContainer.vue';
+import AdminPageHeader from '../components/AdminPageHeader.vue';
+import UserAvatar from '../components/UserAvatar.vue';
+import StatusBadge from '../components/StatusBadge.vue';
+import RoleBadge from '../components/RoleBadge.vue';
 import api from '../api';
 import { useToastStore } from '../stores/toast';
 import { useAuthStore } from '../stores/auth';
 import { useAdminUserStore } from '../stores/adminUser';
-import { Edit2, KeyRound, RotateCw, Loader2, Users, Trash2, ChevronDown, Check, Ban, UserCheck, ShieldOff, Search, X } from 'lucide-vue-next';
-import { formatStatus, formatRole, truncateText } from '../utils/formatters';
+import { Edit2, KeyRound, Loader2, Users, Trash2, ChevronDown, Check, Ban, UserCheck, ShieldOff } from 'lucide-vue-next';
+import { formatRole, truncateText } from '../utils/formatters';
 
 interface User {
   username: string;
@@ -381,8 +309,6 @@ interface User {
 
 const adminUserStore = useAdminUserStore();
 const searchQuery = ref('');
-const isSearchExpanded = ref(false);
-const searchInput = ref<HTMLInputElement | null>(null);
 const showEditModal = ref(false);
 const showPasswordModal = ref(false);
 const showDeleteModal = ref(false);
@@ -393,14 +319,6 @@ const showRoleDropdown = ref(false);
 const selectedUser = ref<User | null>(null);
 const toast = useToastStore();
 const auth = useAuthStore();
-
-watch(isSearchExpanded, (val) => {
-  if (val) {
-    nextTick(() => {
-      searchInput.value?.focus();
-    });
-  }
-});
 
 const filteredUsers = computed(() => {
   const users = adminUserStore.users;
@@ -414,25 +332,6 @@ const filteredUsers = computed(() => {
     user.minecraftUuid?.toLowerCase().includes(q)
   );
 });
-
-const getAvatarChar = (user: User) => {
-  const name = user.nickname || user.username || '?';
-  return name.charAt(0).toUpperCase();
-};
-
-const getAvatarColor = (user: User) => {
-  const name = user.nickname || user.username || '';
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const colors = [
-    'bg-blue-500', 'bg-green-500', 'bg-yellow-500', 'bg-red-500',
-    'bg-indigo-500', 'bg-purple-500', 'bg-pink-500', 'bg-teal-500',
-    'bg-orange-500', 'bg-cyan-500'
-  ];
-  return colors[Math.abs(hash) % colors.length];
-};
 
 const editForm = ref({
   nickname: '',
@@ -466,13 +365,6 @@ const handlePageChange = (page: number) => {
   }
   fetchUsers(page);
 };
-
-const roleClass = (role: string) => {
-  return role === 'ADMIN' 
-    ? 'bg-purple-100 text-purple-800' 
-    : 'bg-blue-100 text-blue-800';
-};
-
 
 const openEdit = (user: User) => {
   selectedUser.value = user;
@@ -618,3 +510,4 @@ onMounted(() => {
   fetchUsers();
 });
 </script>
+
