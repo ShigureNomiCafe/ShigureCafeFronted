@@ -5,8 +5,10 @@
     </transition>
   </router-view>
   <ToastContainer />
+  <BackToTop />
 </template>
 
 <script setup lang="ts">
 import ToastContainer from './components/ToastContainer.vue';
+import BackToTop from './components/BackToTop.vue';
 </script>

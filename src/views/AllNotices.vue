@@ -219,7 +219,7 @@ import Modal from '../components/Modal.vue';
 import Pagination from '../components/Pagination.vue';
 import api from '../api';
 import { 
-  Loader2, ArrowLeft, ChevronRight, Edit2, ChevronLeft, 
+  Loader2, ArrowLeft, ChevronRight, Edit2, 
   Search, Plus, RotateCw, X, Trash2, Megaphone 
 } from 'lucide-vue-next';
 import { marked } from 'marked';

@@ -1,18 +1,36 @@
 <template>
   <div class="flex items-center justify-between px-4 py-3 sm:px-6">
-    <div class="flex flex-1 justify-between sm:hidden">
-      <BaseButton
+    <div class="flex flex-1 items-center justify-between sm:hidden">
+      <button
         @click="$emit('page-change', currentPage - 1)"
         :disabled="currentPage === 0"
-        variant="secondary"
-        label="上一页"
-      />
-      <BaseButton
+        class="relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:text-gray-400 transition-colors"
+      >
+        <ChevronLeft class="h-4 w-4 mr-1" />
+        上一页
+      </button>
+
+      <div class="flex items-center space-x-2">
+        <input
+          v-model="jumpPageInput"
+          type="text"
+          inputmode="numeric"
+          pattern="[0-9]*"
+          class="w-10 px-1 py-1.5 text-sm text-center border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+          @keyup.enter="handleJump"
+          @blur="jumpPageInput = (currentPage + 1).toString()"
+        />
+        <span class="text-xs font-medium text-gray-500">/ {{ totalPages }}</span>
+      </div>
+
+      <button
         @click="$emit('page-change', currentPage + 1)"
         :disabled="currentPage >= totalPages - 1"
-        variant="secondary"
-        label="下一页"
-      />
+        class="relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:text-gray-400 transition-colors"
+      >
+        下一页
+        <ChevronRight class="h-4 w-4 ml-1" />
+      </button>
     </div>
     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
       <div>
@@ -41,6 +59,7 @@
           </div>
           <span class="text-sm text-gray-500">/ {{ totalPages }} 页</span>
           <button 
+            @mousedown.prevent
             @click="handleJump"
             class="p-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
             title="跳转"
