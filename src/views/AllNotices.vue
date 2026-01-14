@@ -81,15 +81,20 @@
       <main>
         <div class="max-w-4xl mx-auto sm:px-6 lg:px-8 mt-8">
           <div class="px-4 sm:px-0">
-             <Transition name="fade-slide" mode="out-in">
+             <transition name="fade-slide" mode="out-in">
                <div 
-                 :key="filteredNotices.length > 0 ? `data-${noticeStore.currentPage}-${searchQuery}` : (noticeStore.loading ? 'loading' : 'empty')"
-                 class="min-h-[400px]"
+                 :key="filteredNotices.length > 0 ? `notices-${noticeStore.currentPage}-${searchQuery}-${noticeStore.fetchCount}` : (noticeStore.loading ? 'loading' : 'empty')"
+                 class="min-h-[300px] relative"
                >
-                 <div v-if="noticeStore.loading && noticeStore.currentNotices.length === 0" class="bg-white shadow rounded-2xl p-12 flex justify-center items-center text-gray-400">
+                 <!-- Loading overlay for refresh -->
+                 <div v-if="noticeStore.loading && filteredNotices.length > 0" class="absolute inset-0 bg-gray-50/40 backdrop-blur-[1px] z-10 flex items-center justify-center transition-all duration-300">
+                    <Loader2 class="h-8 w-8 animate-spin text-indigo-500" />
+                 </div>
+
+                 <div v-if="noticeStore.loading && noticeStore.currentNotices.length === 0" class="bg-white shadow rounded-2xl min-h-[300px] flex justify-center items-center text-gray-400">
                     <Loader2 class="h-8 w-8 animate-spin" />
                  </div>
-                 <div v-else-if="filteredNotices.length === 0" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500 flex flex-col items-center">
+                 <div v-else-if="filteredNotices.length === 0" class="bg-white shadow rounded-2xl min-h-[300px] text-center text-gray-500 flex flex-col items-center justify-center">
                     <Megaphone class="h-12 w-12 text-gray-300 mb-3" />
                     <p>{{ searchQuery ? '未找到匹配的公告' : '暂无公告' }}</p>
                  </div>

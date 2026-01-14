@@ -1,13 +1,13 @@
 <template>
   <div 
-    class="relative group/scroll w-full"
+    class="relative group/scroll w-full h-full flex flex-col"
     @mouseenter="showScrollbar = true"
     @mouseleave="isDragging ? null : (showScrollbar = false)"
   >
     <!-- Content Container -->
     <div 
       ref="containerRef"
-      class="w-full overflow-x-auto scrollbar-none pb-4"
+      class="w-full flex-1 overflow-x-auto scrollbar-none pb-4"
       style="scrollbar-width: none; -ms-overflow-style: none;"
       @scroll="handleScroll"
     >

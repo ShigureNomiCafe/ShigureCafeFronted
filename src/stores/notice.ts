@@ -56,6 +56,7 @@ export const useNoticeStore = defineStore('notice', {
       totalElements: pagination ? JSON.parse(pagination).totalElements as number : 0,
       currentPage: pagination ? JSON.parse(pagination).currentPage as number : 0,
       pageSize: pagination ? JSON.parse(pagination).pageSize as number : 10,
+      fetchCount: 0,
     };
   },
   getters: {
@@ -82,10 +83,6 @@ export const useNoticeStore = defineStore('notice', {
       const pageNum = page;
       const sizeNum = size;
 
-      if (force) {
-        this.notices = {};
-      }
-
       // 1. If we have cache and it's not a forced refresh, switch immediately
       if (!force && this.notices[pageNum]) {
         this.currentPage = pageNum;
@@ -100,17 +97,23 @@ export const useNoticeStore = defineStore('notice', {
         return;
       }
 
-      await this.performFetchNotices(pageNum, sizeNum);
+      await this.performFetchNotices(pageNum, sizeNum, force);
     },
-    async performFetchNotices(pageNum: number, sizeNum: number) {
+    async performFetchNotices(pageNum: number, sizeNum: number, force: boolean = false) {
       const systemStore = useSystemStore();
       const toastStore = useToastStore();
       this.loading = true;
+
+      const minDelay = 1000;
+
       try {
         const url = `/notices?page=${pageNum}&size=${sizeNum}`;
-        const response = await api.get<PaginatedNotices>(url);
+        const [response] = await Promise.all([
+          api.get<PaginatedNotices>(url),
+          new Promise(resolve => setTimeout(resolve, minDelay))
+        ]);
         
-        if (systemStore.updates.noticeLastUpdated > this.globalLastUpdated) {
+        if (force || systemStore.updates.noticeLastUpdated > this.globalLastUpdated) {
             this.notices = {};
         }
 
@@ -120,6 +123,7 @@ export const useNoticeStore = defineStore('notice', {
         this.currentPage = response.pageNumber;
         this.pageSize = response.pageSize;
         this.globalLastUpdated = response.timestamp;
+        this.fetchCount++;
 
         this.saveToLocalStorage();
       } catch (error: any) {

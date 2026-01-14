@@ -56,6 +56,7 @@ export const useAdminAuditStore = defineStore('adminAudit', {
       pageSize: pag.pageSize,
       totalElements: pag.totalElements,
       totalPages: pag.totalPages,
+      fetchCount: 0,
     };
   },
   getters: {
@@ -73,10 +74,6 @@ export const useAdminAuditStore = defineStore('adminAudit', {
       const pageNum = page;
       const sizeNum = size;
 
-      if (force) {
-        this.auditsMap = {};
-      }
-
       // 1. If we have cache and it's not a forced refresh, switch immediately
       if (!force && this.auditsMap[pageNum]) {
         this.currentPage = pageNum;
@@ -91,23 +88,29 @@ export const useAdminAuditStore = defineStore('adminAudit', {
         return; // Return immediately to the caller
       }
 
-      await this.performFetchAudits(pageNum, sizeNum);
+      await this.performFetchAudits(pageNum, sizeNum, force);
     },
-    async performFetchAudits(pageNum: number, sizeNum: number) {
+    async performFetchAudits(pageNum: number, sizeNum: number, force: boolean = false) {
       const systemStore = useSystemStore();
       const toastStore = useToastStore();
       this.loading = true;
+
+      const minDelay = 1000;
+
       try {
         const params: any = {
             page: pageNum,
             size: sizeNum
         };
 
-        const data = await api.get<PagedResponse<Audit>>('/registrations', {
-          params
-        });
+        const [data] = await Promise.all([
+          api.get<PagedResponse<Audit>>('/registrations', {
+            params
+          }),
+          new Promise(resolve => setTimeout(resolve, minDelay))
+        ]);
         
-        if (systemStore.updates.auditLastUpdated > this.globalLastUpdated) {
+        if (force || systemStore.updates.auditLastUpdated > this.globalLastUpdated) {
           this.auditsMap = {};
         }
 
@@ -118,6 +121,7 @@ export const useAdminAuditStore = defineStore('adminAudit', {
         this.totalPages = data.totalPages;
         
         this.globalLastUpdated = data.timestamp;
+        this.fetchCount++;
         
         this.saveToLocalStorage();
       } catch (error: any) {

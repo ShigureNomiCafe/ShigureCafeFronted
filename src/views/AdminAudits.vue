@@ -15,30 +15,30 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8">
           <div class="px-4 sm:px-0">
             <BaseCard body-class="p-0 overflow-hidden" class="animate-slide-up animate-delay-100">
-              <Transition name="fade-slide" mode="out-in">
+              <transition name="fade-slide" mode="out-in">
                 <div 
-                  :key="filteredAudits.length > 0 ? `data-${adminAuditStore.pagination.currentPage}-${searchQuery}` : (adminAuditStore.loading ? 'loading' : 'empty')"
-                  class="min-h-[400px]"
+                  :key="filteredAudits.length > 0 ? `audits-${adminAuditStore.pagination.currentPage}-${searchQuery}-${adminAuditStore.fetchCount}` : (adminAuditStore.loading ? 'loading' : 'empty')"
+                  class="min-h-[300px] flex flex-col"
                 >
                   <!-- Loading State (only if no cache) -->
-                  <div v-if="adminAuditStore.loading && adminAuditStore.audits.length === 0" class="p-12 flex justify-center items-center text-gray-400">
+                  <div v-if="adminAuditStore.loading && adminAuditStore.audits.length === 0" class="flex-1 flex justify-center items-center text-gray-400">
                     <Loader2 class="h-8 w-8 animate-spin" />
                   </div>
 
                   <!-- Empty State -->
-                  <div v-else-if="filteredAudits.length === 0" class="p-12 text-center text-gray-500 flex flex-col items-center">
+                  <div v-else-if="filteredAudits.length === 0" class="flex-1 text-center text-gray-500 flex flex-col items-center justify-center">
                     <ClipboardList class="h-12 w-12 text-gray-300 mb-3" />
                     <p>{{ searchQuery ? '未找到匹配的记录' : '暂无待审核用户' }}</p>
                   </div>
 
                   <!-- Audits Table -->
-                  <div v-else class="relative">
+                  <div v-else class="relative flex-1 flex flex-col">
                     <!-- Loading overlay for refresh -->
                     <div v-if="adminAuditStore.loading" class="absolute inset-0 bg-white/40 backdrop-blur-[1px] z-10 flex items-center justify-center transition-all duration-300">
                       <Loader2 class="h-8 w-8 animate-spin text-indigo-500" />
                     </div>
 
-                    <CustomScrollContainer>
+                    <CustomScrollContainer class="flex-1">
                       <table class="min-w-full divide-y divide-gray-200">
                         <thead class="bg-gray-50/50">
                           <tr>

@@ -60,6 +60,7 @@ export const useAdminUserStore = defineStore('adminUser', {
       pageSize: pag.pageSize,
       totalElements: pag.totalElements,
       totalPages: pag.totalPages,
+      fetchCount: 0,
     };
   },
   getters: {
@@ -77,10 +78,6 @@ export const useAdminUserStore = defineStore('adminUser', {
       const pageNum = page;
       const sizeNum = size;
 
-      if (force) {
-        this.usersMap = {};
-      }
-
       // 1. If we have cache and it's not a forced refresh, switch immediately
       if (!force && this.usersMap[pageNum]) {
         this.currentPage = pageNum;
@@ -95,18 +92,24 @@ export const useAdminUserStore = defineStore('adminUser', {
         return;
       }
 
-      await this.performFetchUsers(pageNum, sizeNum);
+      await this.performFetchUsers(pageNum, sizeNum, force);
     },
-    async performFetchUsers(pageNum: number, sizeNum: number) {
+    async performFetchUsers(pageNum: number, sizeNum: number, force: boolean = false) {
       const systemStore = useSystemStore();
       const toastStore = useToastStore();
       this.loading = true;
+      
+      const minDelay = 1000;
+
       try {
-        const data = await api.get<PagedResponse<User>>('/users', {
-          params: { page: pageNum, size: sizeNum }
-        });
+        const [data] = await Promise.all([
+          api.get<PagedResponse<User>>('/users', {
+            params: { page: pageNum, size: sizeNum }
+          }),
+          new Promise(resolve => setTimeout(resolve, minDelay))
+        ]);
         
-        if (systemStore.updates.userLastUpdated > this.globalLastUpdated) {
+        if (force || systemStore.updates.userLastUpdated > this.globalLastUpdated) {
           this.usersMap = {};
         }
 
@@ -117,6 +120,7 @@ export const useAdminUserStore = defineStore('adminUser', {
         this.totalPages = data.totalPages;
         
         this.globalLastUpdated = data.timestamp;
+        this.fetchCount++;
         
         this.saveToLocalStorage();
       } catch (error: any) {
