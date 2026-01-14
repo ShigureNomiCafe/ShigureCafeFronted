@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 import api from '../api';
+import { useSystemStore } from './system';
+import { useToastStore } from './toast';
 
 export interface ReactionCount {
   emoji: string;
@@ -30,9 +32,8 @@ export const useNoticeStore = defineStore('notice', {
   state: () => {
     const cached = localStorage.getItem('cached_notices');
     const pagination = localStorage.getItem('notices_pagination');
-    const lastUpdated = localStorage.getItem('notices_last_updated');
+    const globalLastUpdated = localStorage.getItem('notices_global_last_updated');
 
-    // Helper to handle legacy Map-to-Array serialization
     const parsePotentialMap = (data: string | null) => {
       if (!data) return {};
       try {
@@ -48,9 +49,9 @@ export const useNoticeStore = defineStore('notice', {
 
     return {
       notices: parsePotentialMap(cached) as Record<number, Notice[]>,
-      reactions: {} as Record<number, ReactionCount[]>, // Cache reactions in memory (not persisted for now)
+      reactions: {} as Record<number, ReactionCount[]>,
       loading: false,
-      lastUpdatedMap: parsePotentialMap(lastUpdated) as Record<number, number>,
+      globalLastUpdated: globalLastUpdated ? parseInt(globalLastUpdated) : 0,
       totalPages: pagination ? JSON.parse(pagination).totalPages as number : 0,
       totalElements: pagination ? JSON.parse(pagination).totalElements as number : 0,
       currentPage: pagination ? JSON.parse(pagination).currentPage as number : 0,
@@ -77,55 +78,54 @@ export const useNoticeStore = defineStore('notice', {
   },
   actions: {
     async fetchNotices(page: number = 0, size: number = 10, force: boolean = false) {
+      const systemStore = useSystemStore();
+      const toastStore = useToastStore();
       const pageNum = page;
       const sizeNum = size;
 
+      if (!force) {
+        try {
+          const updates = await systemStore.fetchUpdates();
+          if (updates.noticeLastUpdated <= this.globalLastUpdated && this.notices[pageNum]) {
+            this.currentPage = pageNum;
+            return;
+          }
+        } catch (e) {
+          // Silent fail for updates check
+        }
+      }
+
       this.loading = true;
       try {
-        let url = `/notices?page=${pageNum}&size=${sizeNum}`;
-        // If we have a timestamp for this page and not forcing, send it
-        if (!force && this.lastUpdatedMap[pageNum]) {
-          url += `&t=${this.lastUpdatedMap[pageNum]}`;
-        }
-
+        const url = `/notices?page=${pageNum}&size=${sizeNum}`;
         const response = await api.get<PaginatedNotices>(url);
         
-        // Update state
+        if (systemStore.updates.noticeLastUpdated > this.globalLastUpdated) {
+            this.notices = {};
+        }
+
         this.notices[pageNum] = response.content;
         this.totalPages = response.totalPages;
         this.totalElements = response.totalElements;
         this.currentPage = response.pageNumber;
         this.pageSize = response.pageSize;
-
-        // Use the server-provided timestamp for this page
-        this.lastUpdatedMap[pageNum] = response.timestamp;
+        this.globalLastUpdated = response.timestamp;
 
         this.saveToLocalStorage();
       } catch (error: any) {
-        // Handle 304 Not Modified
-        if (error.response && error.response.status === 304) {
-          this.currentPage = pageNum;
-          // Ensure notices[pageNum] exists even if 304 (it should if it was cached)
-          if (!this.notices[pageNum]) {
-            this.notices[pageNum] = [];
-          }
-          return;
-        }
-
-        console.error('Failed to fetch notices', error);
-        throw error;
+        toastStore.error('加载公告失败', error.message);
       } finally {
         this.loading = false;
       }
     },
     async fetchNoticeById(id: number) {
+      const toastStore = useToastStore();
       try {
         const data = await api.get<Notice>(`/notices/${id}`);
-        // Optionally update the cached notice if it exists in any page
         this.updateNoticeInCache(data);
         return data;
-      } catch (error) {
-        console.error(`Failed to fetch notice ${id}`, error);
+      } catch (error: any) {
+        toastStore.error('获取公告详情失败', error.message);
         throw error;
       }
     },
@@ -135,7 +135,6 @@ export const useNoticeStore = defineStore('notice', {
             this.reactions[id] = data;
             return data;
         } catch (error) {
-            console.error(`Failed to fetch reactions for notice ${id}`, error);
             throw error;
         }
     },
@@ -143,7 +142,6 @@ export const useNoticeStore = defineStore('notice', {
         if (noticeIds.length === 0) return;
         try {
             const data = await api.post<Record<number, ReactionCount[]>>(`/notices/reactions/batch`, noticeIds);
-            // Merge into state
             Object.keys(data).forEach(key => {
                 const id = Number(key);
                 if (data[id]) {
@@ -151,16 +149,17 @@ export const useNoticeStore = defineStore('notice', {
                 }
             });
         } catch (error) {
-            console.error('Failed to batch fetch reactions', error);
+            // Batch reactions fail silently
         }
     },
     async toggleReaction(noticeId: number, emoji: string) {
+      const toastStore = useToastStore();
       try {
         const data = await api.post<ReactionCount[]>(`/notices/${noticeId}/reactions`, { emoji });
         this.reactions[noticeId] = data;
         return data;
-      } catch (error) {
-        console.error(`Failed to toggle reaction on notice ${noticeId}`, error);
+      } catch (error: any) {
+        toastStore.error('操作失败', error.message);
         throw error;
       }
     },
@@ -184,7 +183,7 @@ export const useNoticeStore = defineStore('notice', {
     },
     saveToLocalStorage() {
       localStorage.setItem('cached_notices', JSON.stringify(this.notices));
-      localStorage.setItem('notices_last_updated', JSON.stringify(this.lastUpdatedMap));
+      localStorage.setItem('notices_global_last_updated', this.globalLastUpdated.toString());
       localStorage.setItem('notices_pagination', JSON.stringify({
         totalPages: this.totalPages,
         totalElements: this.totalElements,
@@ -194,9 +193,9 @@ export const useNoticeStore = defineStore('notice', {
     },
     clearCache() {
       this.notices = {};
-      this.lastUpdatedMap = {};
+      this.globalLastUpdated = 0;
       localStorage.removeItem('cached_notices');
-      localStorage.removeItem('notices_last_updated');
+      localStorage.removeItem('notices_global_last_updated');
       localStorage.removeItem('notices_pagination');
     }
   },

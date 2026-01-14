@@ -170,7 +170,7 @@ const handleReaction = async (emoji: string) => {
     await noticeStore.toggleReaction(notice.value.id, emoji);
     // State updates automatically via store
   } catch (error) {
-    console.error('Failed to toggle reaction', error);
+    // Handled by store/toast
   }
 };
 
@@ -192,7 +192,7 @@ const fetchNotice = async () => {
     // Fetch reactions separately
     await noticeStore.fetchReactions(id);
   } catch (error) {
-    console.error('Failed to fetch notice', error);
+    // Handled by store/toast
   } finally {
     loading.value = false;
   }

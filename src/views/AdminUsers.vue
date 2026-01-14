@@ -504,7 +504,6 @@ const saveEdit = async () => {
     fetchUsers();
   } catch (error: any) {
     toast.error('更新用户失败', error.message);
-    console.error(error);
   }
 };
 
@@ -537,7 +536,6 @@ const savePassword = async () => {
     closePassword();
   } catch (error: any) {
     toast.error('重置密码失败', error.message);
-    console.error(error);
   }
 };
 
@@ -555,7 +553,6 @@ const handleBan = async () => {
     fetchUsers();
   } catch (error: any) {
     toast.error('封禁失败', error.message);
-    console.error(error);
   }
 };
 
@@ -573,7 +570,6 @@ const handleReset2FA = async () => {
     fetchUsers();
   } catch (error: any) {
     toast.error('重置双重验证失败', error.message);
-    console.error(error);
   }
 };
 
@@ -591,7 +587,6 @@ const handlePardon = async () => {
     fetchUsers();
   } catch (error: any) {
     toast.error('解除封禁失败', error.message);
-    console.error(error);
   }
 };
 
@@ -609,7 +604,6 @@ const handleDelete = async () => {
     fetchUsers();
   } catch (error: any) {
     toast.error('删除用户失败', error.message);
-    console.error(error);
   }
 };
 

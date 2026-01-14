@@ -113,7 +113,7 @@ export const useAuthStore = defineStore('auth', {
             localStorage.setItem('auth_user_last_updated', this.lastUpdated.toString());
           }
         } catch (error) {
-          console.error('Failed to fetch user', error);
+          // Silent fail, handled by lack of user in state
         } finally {
           this.fetchUserPromise = null;
         }

@@ -294,7 +294,7 @@ onMounted(async () => {
       await auth.fetchCurrentUser();
     }
   } catch (error) {
-    console.error('Failed to fetch user', error);
+    // Handled by auth store
   } finally {
     pageLoading.value = false;
     await noticeStore.fetchNotices();

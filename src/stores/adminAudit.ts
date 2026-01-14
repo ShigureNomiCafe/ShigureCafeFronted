@@ -1,5 +1,7 @@
 import { defineStore } from 'pinia';
 import api from '../api';
+import { useSystemStore } from './system';
+import { useToastStore } from './toast';
 
 export interface Audit {
   username: string;
@@ -24,7 +26,7 @@ export const useAdminAuditStore = defineStore('adminAudit', {
   state: () => {
     const cached = localStorage.getItem('admin_audits_cache');
     const pagination = localStorage.getItem('admin_audits_pagination');
-    const lastUpdated = localStorage.getItem('admin_audits_last_updated');
+    const globalLastUpdated = localStorage.getItem('admin_audits_global_last_updated');
 
     const parsePotentialMap = (data: string | null) => {
       if (!data) return {};
@@ -49,7 +51,7 @@ export const useAdminAuditStore = defineStore('adminAudit', {
     return {
       auditsMap: parsePotentialMap(cached) as Record<number, Audit[]>,
       loading: false,
-      lastUpdatedMap: parsePotentialMap(lastUpdated) as Record<number, number>,
+      globalLastUpdated: globalLastUpdated ? parseInt(globalLastUpdated) : 0,
       currentPage: pag.currentPage,
       pageSize: pag.pageSize,
       totalElements: pag.totalElements,
@@ -67,8 +69,22 @@ export const useAdminAuditStore = defineStore('adminAudit', {
   },
   actions: {
     async fetchAudits(page = 0, size = 10, force = false) {
+      const systemStore = useSystemStore();
+      const toastStore = useToastStore();
       const pageNum = page;
       const sizeNum = size;
+
+      if (!force) {
+        try {
+          const updates = await systemStore.fetchUpdates();
+          if (updates.auditLastUpdated <= this.globalLastUpdated && this.auditsMap[pageNum]) {
+            this.currentPage = pageNum;
+            return;
+          }
+        } catch (e) {
+          // Silent fail
+        }
+      }
 
       this.loading = true;
       try {
@@ -78,52 +94,45 @@ export const useAdminAuditStore = defineStore('adminAudit', {
             sortBy: 'expiryDate',
             direction: 'desc'
         };
-        if (!force && this.lastUpdatedMap[pageNum]) {
-             params.t = this.lastUpdatedMap[pageNum];
-        }
 
         const data = await api.get<PagedResponse<Audit>>('/registrations', {
           params
         });
         
+        if (systemStore.updates.auditLastUpdated > this.globalLastUpdated) {
+          this.auditsMap = {};
+        }
+
         this.auditsMap[pageNum] = data.content;
         this.currentPage = data.pageNumber;
         this.pageSize = data.pageSize;
         this.totalElements = data.totalElements;
         this.totalPages = data.totalPages;
         
-        this.lastUpdatedMap[pageNum] = data.timestamp;
+        this.globalLastUpdated = data.timestamp;
         
         this.saveToLocalStorage();
       } catch (error: any) {
-        if (error.response && error.response.status === 304) {
-             this.currentPage = pageNum;
-             if (!this.auditsMap[pageNum]) {
-                this.auditsMap[pageNum] = [];
-             }
-             return;
-        }
-        console.error('Failed to fetch audits', error);
-        throw error;
+        toastStore.error('加载审核列表失败', error.message);
       } finally {
         this.loading = false;
       }
     },
     saveToLocalStorage() {
       localStorage.setItem('admin_audits_cache', JSON.stringify(this.auditsMap));
-      localStorage.setItem('admin_audits_last_updated', JSON.stringify(this.lastUpdatedMap));
+      localStorage.setItem('admin_audits_global_last_updated', this.globalLastUpdated.toString());
       localStorage.setItem('admin_audits_pagination', JSON.stringify(this.pagination));
     },
     clearCache() {
       this.auditsMap = {};
-      this.lastUpdatedMap = {};
+      this.globalLastUpdated = 0;
       this.currentPage = 0;
       this.pageSize = 10;
       this.totalElements = 0;
       this.totalPages = 0;
       localStorage.removeItem('admin_audits_cache');
       localStorage.removeItem('admin_audits_pagination');
-      localStorage.removeItem('admin_audits_last_updated');
+      localStorage.removeItem('admin_audits_global_last_updated');
     }
   }
 });
