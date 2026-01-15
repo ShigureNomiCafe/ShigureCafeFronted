@@ -209,10 +209,10 @@
                         <div v-if="noticeStore.getReactions(notice.id).length > 0" class="mt-2 flex flex-wrap items-center gap-1">
                           <span 
                             v-for="reaction in noticeStore.getReactions(notice.id).slice(0, 5)" 
-                            :key="reaction.emoji"
+                            :key="reaction.type"
                             class="inline-flex items-center space-x-1 text-[9px] font-bold text-gray-500 bg-gray-50 border border-gray-100 px-1.5 py-0 rounded-full"
                           >
-                            <span>{{ reaction.emoji }}</span>
+                            <span>{{ getEmoji(reaction.type) }}</span>
                             <span>{{ reaction.count }}</span>
                           </span>
                         </div>
@@ -250,6 +250,7 @@
 import { onMounted, ref, computed } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useNoticeStore } from '../stores/notice';
+import { useSystemStore } from '../stores/system';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import { Loader2, ChevronRight, Edit2 } from 'lucide-vue-next';
@@ -258,6 +259,7 @@ import { formatDateTime } from '../utils/formatters';
 
 const auth = useAuthStore();
 const noticeStore = useNoticeStore();
+const systemStore = useSystemStore();
 const pageLoading = ref(true);
 
 const displayedNotices = computed(() => {
@@ -266,6 +268,8 @@ const displayedNotices = computed(() => {
   const unpinned = notices.filter(n => !n.pinned).slice(0, 3);
   return [...pinned, ...unpinned];
 });
+
+const getEmoji = (type: string) => systemStore.reactionMap[type] || '❓';
 
 // Calculate the base delay for the notice section based on user role
 const noticeDelayBase = computed(() => {
@@ -293,6 +297,8 @@ onMounted(async () => {
     if (!auth.user) {
       await auth.fetchCurrentUser();
     }
+    // Fetch system configs
+    systemStore.fetchReactionTypes();
   } catch (error) {
     // Handled by auth store
   } finally {

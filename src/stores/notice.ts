@@ -4,7 +4,7 @@ import { useSystemStore } from './system';
 import { useToastStore } from './toast';
 
 export interface ReactionCount {
-  emoji: string;
+  type: string;
   count: number;
   reacted: boolean;
 }
@@ -177,10 +177,10 @@ export const useNoticeStore = defineStore('notice', {
             // Batch reactions fail silently
         }
     },
-    async toggleReaction(noticeId: number, emoji: string) {
+    async toggleReaction(noticeId: number, type: string) {
       const toastStore = useToastStore();
       try {
-        const data = await api.post<ReactionCount[]>(`/notices/${noticeId}/reactions`, { emoji });
+        const data = await api.post<ReactionCount[]>(`/notices/${noticeId}/reactions`, { type });
         this.reactions[noticeId] = data;
         return data;
       } catch (error: any) {

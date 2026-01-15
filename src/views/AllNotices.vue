@@ -135,10 +135,10 @@
                             <div v-if="noticeStore.getReactions(notice.id).length > 0" class="mt-3 flex flex-wrap items-center gap-1.5">
                               <span 
                                 v-for="reaction in noticeStore.getReactions(notice.id).slice(0, 5)" 
-                                :key="reaction.emoji"
+                                :key="reaction.type"
                                 class="inline-flex items-center space-x-1 text-[10px] font-bold text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full"
                               >
-                                <span>{{ reaction.emoji }}</span>
+                                <span>{{ getEmoji(reaction.type) }}</span>
                                 <span>{{ reaction.count }}</span>
                               </span>
                               <span v-if="noticeStore.getReactions(notice.id).length > 5" class="text-[10px] text-gray-400">...</span>
@@ -217,6 +217,7 @@ import { ref, onMounted, computed, watch, nextTick } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useNoticeStore, type Notice } from '../stores/notice';
 import { useToastStore } from '../stores/toast';
+import { useSystemStore } from '../stores/system';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import BaseButton from '../components/BaseButton.vue';
@@ -233,12 +234,15 @@ import { formatDateTime } from '../utils/formatters';
 const auth = useAuthStore();
 const noticeStore = useNoticeStore();
 const toast = useToastStore();
+const systemStore = useSystemStore();
 
 const searchQuery = ref('');
 const isSearchExpanded = ref(false);
 const searchInput = ref<HTMLInputElement | null>(null);
 const showDeleteModal = ref(false);
 const selectedNotice = ref<Notice | null>(null);
+
+const getEmoji = (type: string) => systemStore.reactionMap[type] || '❓';
 
 watch(isSearchExpanded, (val) => {
   if (val) {
@@ -300,6 +304,7 @@ onMounted(async () => {
     await auth.fetchCurrentUser();
   }
   await noticeStore.fetchNotices();
+  systemStore.fetchReactionTypes();
   fetchReactions();
 });
 </script>

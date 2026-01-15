@@ -7,6 +7,11 @@ export interface SystemUpdates {
   auditLastUpdated: number;
 }
 
+export interface ReactionType {
+  name: string;
+  emoji: string;
+}
+
 export const useSystemStore = defineStore('system', {
   state: () => ({
     updates: {
@@ -14,11 +19,36 @@ export const useSystemStore = defineStore('system', {
       userLastUpdated: 0,
       auditLastUpdated: 0,
     } as SystemUpdates,
+    reactionTypes: [] as ReactionType[],
+    reactionTypesLoaded: false,
     loading: false,
     lastFetched: 0,
     fetchPromise: null as Promise<SystemUpdates> | null,
   }),
+  getters: {
+    reactionMap: (state) => {
+      const map: Record<string, string> = {};
+      state.reactionTypes.forEach(t => {
+        map[t.name] = t.emoji;
+      });
+      return map;
+    }
+  },
   actions: {
+    async fetchReactionTypes() {
+      if (this.reactionTypesLoaded) return this.reactionTypes;
+      
+      try {
+        const data = await api.get<ReactionType[]>('/system/reaction-types');
+        this.reactionTypes = data;
+        this.reactionTypesLoaded = true;
+        return data;
+      } catch (error) {
+        console.error('Failed to fetch reaction types', error);
+        return [];
+      }
+    },
+
     async fetchUpdates() {
       if (this.fetchPromise) {
         return this.fetchPromise;
