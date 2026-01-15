@@ -2,6 +2,9 @@ import { defineStore } from 'pinia';
 import api from '../api';
 import { useSystemStore } from './system';
 import { useToastStore } from './toast';
+import i18n from '../locales';
+
+const { t } = i18n.global;
 
 export interface Audit {
   username: string;
@@ -78,14 +81,14 @@ export const useAdminAuditStore = defineStore('adminAudit', {
       // 1. If we have cache and it's not a forced refresh, switch immediately
       if (!force && this.auditsMap[pageNum]) {
         this.currentPage = pageNum;
-        
+
         // Background check for updates - Fire and forget
         systemStore.fetchUpdates().then(updates => {
           if (updates.auditLastUpdated > this.globalLastUpdated) {
             this.performFetchAudits(pageNum, sizeNum);
           }
-        }).catch(() => {});
-        
+        }).catch(() => { });
+
         return; // Return immediately to the caller
       }
 
@@ -106,8 +109,8 @@ export const useAdminAuditStore = defineStore('adminAudit', {
       this.fetchPromises[cacheKey] = (async () => {
         try {
           const params: any = {
-              page: pageNum,
-              size: sizeNum
+            page: pageNum,
+            size: sizeNum
           };
 
           const [data] = await Promise.all([
@@ -116,7 +119,7 @@ export const useAdminAuditStore = defineStore('adminAudit', {
             }),
             new Promise(resolve => setTimeout(resolve, minDelay))
           ]);
-          
+
           if (force || systemStore.updates.auditLastUpdated > this.globalLastUpdated) {
             this.auditsMap = {};
           }
@@ -126,13 +129,13 @@ export const useAdminAuditStore = defineStore('adminAudit', {
           this.pageSize = data.pageSize;
           this.totalElements = data.totalElements;
           this.totalPages = data.totalPages;
-          
+
           this.globalLastUpdated = data.timestamp;
           this.fetchCount++;
-          
+
           this.saveToLocalStorage();
         } catch (error: any) {
-          toastStore.error('加载审核列表失败', error.message);
+          toastStore.error(t('admin-audit.messages.fetch-failed'), error.message);
         } finally {
           this.loading = false;
           delete this.fetchPromises[cacheKey];

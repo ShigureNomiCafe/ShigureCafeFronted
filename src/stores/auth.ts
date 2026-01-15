@@ -87,13 +87,6 @@ export const useAuthStore = defineStore('auth', {
         localStorage.setItem('auth_user_cache', JSON.stringify(this.user));
       }
     },
-    async send2FACode() {
-      if (!this.twoFactorEmail) return;
-      await api.post('/auth/verification-codes', {
-        email: this.twoFactorEmail,
-        type: '2FA',
-      });
-    },
     async fetchCurrentUser(force: boolean = false) {
       if (!this.token) return;
 

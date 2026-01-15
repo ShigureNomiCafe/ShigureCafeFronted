@@ -1,20 +1,19 @@
+import i18n from '../locales';
+
+const { t } = i18n.global;
+
 export const formatStatus = (status: string | undefined) => {
   if (!status) return '';
-  const map: Record<string, string> = {
-    ACTIVE: '正常',
-    PENDING: '待审核',
-    BANNED: '封禁'
-  };
-  return map[status] || status;
+  const key = `common.statuses.${status}`;
+  const translated = t(key);
+  return translated === key ? status : translated;
 };
 
 export const formatRole = (role: string | undefined) => {
   if (!role) return '';
-  const map: Record<string, string> = {
-    ADMIN: '管理员',
-    USER: '普通用户'
-  };
-  return map[role] || role;
+  const key = `common.roles.${role}`;
+  const translated = t(key);
+  return translated === key ? role : translated;
 };
 
 export const truncateText = (text: string | null | undefined, length = 30) => {
@@ -28,7 +27,8 @@ export const truncateText = (text: string | null | undefined, length = 30) => {
 export const formatDateTime = (timestamp: number) => {
   if (!timestamp) return '';
   const date = new Date(timestamp);
-  return date.toLocaleString(undefined, {
+  const locale = i18n.global.locale.value || i18n.global.locale;
+  return date.toLocaleString(locale, {
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',

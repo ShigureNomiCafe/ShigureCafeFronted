@@ -1,19 +1,9 @@
 <template>
   <div class="flex justify-between gap-2" @paste="handlePaste">
-    <input
-      v-for="(_, index) in digits"
-      :key="index"
-      ref="inputs"
-      v-model="digits[index]"
-      type="text"
-      maxlength="1"
-      inputmode="numeric"
-      pattern="[0-9]*"
-      autocomplete="one-time-code"
+    <input v-for="(_, index) in digits" :key="index" ref="inputs" v-model="digits[index]" type="text" maxlength="1"
+      inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
       class="w-full h-14 text-center text-2xl font-bold border border-gray-200 rounded-xl focus:outline-none focus:border-blue-500 bg-white/50 transition-all duration-200"
-      @input="handleInput(index, $event)"
-      @keydown="handleKeyDown(index, $event)"
-    />
+      @input="handleInput(index, $event)" @keydown="handleKeyDown(index, $event)" />
   </div>
 </template>
 
@@ -54,7 +44,7 @@ watch(digits, (newDigits) => {
 const handleInput = (index: number, e: Event) => {
   const input = e.target as HTMLInputElement;
   const value = input.value;
-  
+
   if (value && index < props.length - 1) {
     inputs.value[index + 1]?.focus();
   }

@@ -10,14 +10,14 @@
               <ArrowLeft class="h-6 w-6" />
             </button>
             <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
-              公告详情
+              {{ t('notices.detail.title') }}
             </h1>
           </div>
           <button v-if="auth.user?.role === 'ADMIN' && notice"
             @click="$router.push(`/admin/notices/${notice.id}/edit?redirect=/notices/${notice.id}`)"
             class="flex items-center space-x-2 px-4 py-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors shadow-sm font-bold text-sm animate-slide-up animate-delay-50">
             <Edit2 class="h-4 w-4" />
-            <span>编辑公告</span>
+            <span>{{ t('notices.detail.edit-button') }}</span>
           </button>
         </div>
       </header>
@@ -28,8 +28,9 @@
               <Loader2 class="h-8 w-8 animate-spin" />
             </div>
             <div v-else-if="!notice" class="bg-white shadow rounded-2xl p-12 text-center text-gray-500">
-              <p>公告不存在或已被删除</p>
-              <button @click="$router.push('/notices')" class="mt-4 text-indigo-600 font-medium">查看所有公告</button>
+              <p>{{ t('notices.detail.not-found') }}</p>
+              <button @click="$router.push('/notices')" class="mt-4 text-indigo-600 font-medium">{{
+                t('notices.detail.view-all') }}</button>
             </div>
             <div v-else class="animate-slide-up animate-delay-150">
               <BaseCard body-class="p-8" :class="[
@@ -53,7 +54,7 @@
                         <h4 class="text-2xl font-bold text-gray-900">{{ notice.title }}</h4>
                         <span v-if="notice.pinned"
                           class="ml-3 px-2 py-1 text-xs font-bold uppercase tracking-wider bg-orange-100 text-orange-700 rounded-md">
-                          置顶
+                          {{ t('notices.pinned') }}
                         </span>
                       </div>
                       <div class="text-right">
@@ -79,20 +80,19 @@
                         <div class="relative" ref="emojiPickerContainer">
                           <button @click="toggleEmojiPicker"
                             class="flex items-center justify-center h-9 w-9 rounded-full border border-gray-200 bg-white text-gray-400 hover:text-indigo-600 hover:border-indigo-200 hover:bg-indigo-50 transition-all duration-200"
-                            title="添加回应">
+                            :title="t('notices.detail.add-reaction')">
                             <Plus class="h-5 w-5" />
                           </button>
 
                           <Transition name="emoji-pop">
-                            <div v-if="showEmojiPicker"
-                              :class="[
-                                'absolute z-50 bg-white shadow-2xl border border-gray-100 rounded-2xl p-2 w-64',
-                                pickerAlignment.top ? 'bottom-full mb-3' : 'top-full mt-3',
-                                pickerAlignment.left ? 'left-0' : 'right-0',
-                                pickerAlignment.top
-                                  ? (pickerAlignment.left ? 'origin-bottom-left' : 'origin-bottom-right')
-                                  : (pickerAlignment.left ? 'origin-top-left' : 'origin-top-right')
-                              ]">
+                            <div v-if="showEmojiPicker" :class="[
+                              'absolute z-50 bg-white shadow-2xl border border-gray-100 rounded-2xl p-2 w-64',
+                              pickerAlignment.top ? 'bottom-full mb-3' : 'top-full mt-3',
+                              pickerAlignment.left ? 'left-0' : 'right-0',
+                              pickerAlignment.top
+                                ? (pickerAlignment.left ? 'origin-bottom-left' : 'origin-bottom-right')
+                                : (pickerAlignment.left ? 'origin-top-left' : 'origin-top-right')
+                            ]">
                               <div class="max-h-48 overflow-y-auto p-1 custom-scrollbar">
                                 <div class="grid grid-cols-5 gap-1">
                                   <button v-for="type in availableReactions" :key="type"
@@ -117,8 +117,9 @@
                         </div>
                         <div>
                           <span class="font-bold text-gray-900 block">{{ notice.authorNickname }}</span>
-                          <span v-if="notice.updatedAt !== notice.createdAt" class="text-xs text-gray-400 italic">已编辑于
-                            {{ formatDateTime(notice.updatedAt) }}</span>
+                          <span v-if="notice.updatedAt !== notice.createdAt" class="text-xs text-gray-400 italic">
+                            {{ t('notices.detail.edited-at', { time: formatDateTime(notice.updatedAt) }) }}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -136,6 +137,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref, computed } from 'vue';
 import { useRoute } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
 import { useNoticeStore, type Notice } from '../stores/notice';
 import { useSystemStore } from '../stores/system';
@@ -145,6 +147,7 @@ import { Loader2, ArrowLeft, Edit2, Plus } from 'lucide-vue-next';
 import { marked } from 'marked';
 import { formatDateTime } from '../utils/formatters';
 
+const { t } = useI18n();
 const route = useRoute();
 const auth = useAuthStore();
 const noticeStore = useNoticeStore();

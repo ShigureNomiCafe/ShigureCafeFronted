@@ -6,7 +6,7 @@
       <header>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
-            安全设置
+            {{ $t('security.title') }}
           </h1>
         </div>
       </header>
@@ -14,34 +14,17 @@
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 mt-8 space-y-8">
           <!-- Password Section -->
           <div class="px-4 sm:px-0 animate-slide-up animate-delay-50">
-            <BaseCard title="密码修改" subtitle="为了您的账户安全，建议定期更换密码。">
+            <BaseCard :title="$t('security.password.title')" :subtitle="$t('security.password.subtitle')">
               <form @submit.prevent="handleChangePassword" class="space-y-6 max-w-lg">
-                <BaseInput
-                  v-model="passwordForm.oldPassword"
-                  label="当前密码"
-                  type="password"
-                  required
-                />
-                <BaseInput
-                  v-model="passwordForm.newPassword"
-                  label="新密码"
-                  type="password"
-                  required
-                />
-                <BaseInput
-                  v-model="confirmPassword"
-                  label="确认新密码"
-                  type="password"
-                  required
-                />
+                <BaseInput v-model="passwordForm.oldPassword" :label="$t('security.password.old-password')"
+                  type="password" required />
+                <BaseInput v-model="passwordForm.newPassword" :label="$t('security.password.new-password')"
+                  type="password" required />
+                <BaseInput v-model="confirmPassword" :label="$t('security.password.confirm-password')" type="password"
+                  required />
                 <div class="flex items-center justify-end">
-                  <BaseButton
-                    type="submit"
-                    :loading="passwordLoading"
-                    label="修改密码"
-                    loading-text="修改中..."
-                    full-width
-                  />
+                  <BaseButton type="submit" :loading="passwordLoading" :label="$t('security.password.submit')"
+                    :loading-text="$t('security.password.submitting')" full-width />
                 </div>
               </form>
             </BaseCard>
@@ -49,55 +32,52 @@
 
           <!-- Email Section -->
           <div class="px-4 sm:px-0 animate-slide-up animate-delay-100">
-            <BaseCard title="邮箱管理" subtitle="管理您的绑定邮箱，用于找回密码与安全通知。">
+            <BaseCard :title="$t('security.email.title')" :subtitle="$t('security.email.subtitle')">
               <div class="flex items-center justify-between">
                 <div>
-                  <dt class="text-sm font-medium text-gray-500">当前绑定邮箱</dt>
+                  <dt class="text-sm font-medium text-gray-500">{{ $t('security.email.current-label') }}</dt>
                   <dd class="mt-1 text-lg font-semibold text-gray-900">{{ auth.user?.email }}</dd>
                 </div>
-                <BaseButton variant="secondary" @click="showEmailModal = true" label="更换邮箱" />
+                <BaseButton variant="secondary" @click="showEmailModal = true"
+                  :label="$t('security.email.change-button')" />
               </div>
             </BaseCard>
           </div>
 
           <!-- Email 2FA Section -->
           <div class="px-4 sm:px-0 animate-slide-up animate-delay-150">
-            <BaseCard title="邮箱双重验证" subtitle="开启后，登录时需提供发送至邮箱的验证码。">
+            <BaseCard :title="$t('security.email-2fa.title')" :subtitle="$t('security.email-2fa.subtitle')">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                  <div :class="[auth.user?.email2faEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700', 'px-3 py-1 rounded-full text-xs font-bold transition-colors duration-300']">
-                    {{ auth.user?.email2faEnabled ? '已开启' : '未开启' }}
+                  <div
+                    :class="[auth.user?.email2faEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700', 'px-3 py-1 rounded-full text-xs font-bold transition-colors duration-300']">
+                    {{ auth.user?.email2faEnabled ? $t('security.status.enabled') : $t('security.status.disabled') }}
                   </div>
-                  <span class="text-sm text-gray-600">邮箱验证状态</span>
+                  <span class="text-sm text-gray-600">{{ $t('security.email-2fa.status-label') }}</span>
                 </div>
-                <BaseButton 
-                  @click="handleToggleEmail2FA" 
-                  :disabled="toggleEmailLoading"
+                <BaseButton @click="handleToggleEmail2FA" :disabled="toggleEmailLoading"
                   :variant="auth.user?.email2faEnabled ? 'danger' : 'secondary'"
-                  :label="auth.user?.email2faEnabled ? '关闭邮箱验证' : '开启邮箱验证'"
-                  :loading="toggleEmailLoading"
-                />
+                  :label="auth.user?.email2faEnabled ? $t('security.email-2fa.disable') : $t('security.email-2fa.enable')"
+                  :loading="toggleEmailLoading" />
               </div>
             </BaseCard>
           </div>
 
           <!-- TOTP 2FA Section -->
           <div class="px-4 sm:px-0 animate-slide-up animate-delay-200">
-            <BaseCard title="身份验证器 (TOTP)" subtitle="开启后，登录时需提供身份验证器应用生成的代码。">
+            <BaseCard :title="$t('security.totp.title')" :subtitle="$t('security.totp.subtitle')">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                  <div :class="[auth.user?.totpEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700', 'px-3 py-1 rounded-full text-xs font-bold transition-colors duration-300']">
-                    {{ auth.user?.totpEnabled ? '已开启' : '未开启' }}
+                  <div
+                    :class="[auth.user?.totpEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700', 'px-3 py-1 rounded-full text-xs font-bold transition-colors duration-300']">
+                    {{ auth.user?.totpEnabled ? $t('security.status.enabled') : $t('security.status.disabled') }}
                   </div>
-                  <span class="text-sm text-gray-600">验证器状态</span>
+                  <span class="text-sm text-gray-600">{{ $t('security.totp.status-label') }}</span>
                 </div>
-                <BaseButton 
-                  @click="handle2FAAction" 
-                  :disabled="toggleLoading"
+                <BaseButton @click="handle2FAAction" :disabled="toggleLoading"
                   :variant="auth.user?.totpEnabled ? 'danger' : 'secondary'"
-                  :label="auth.user?.totpEnabled ? '关闭身份验证器' : '开启身份验证器'"
-                  :loading="toggleLoading"
-                />
+                  :label="auth.user?.totpEnabled ? $t('security.totp.disable') : $t('security.totp.enable')"
+                  :loading="toggleLoading" />
               </div>
             </BaseCard>
           </div>
@@ -106,100 +86,78 @@
     </div>
 
     <!-- TOTP Setup Modal -->
-    <Modal :show="showTotpModal" title="开启双重验证 (TOTP)" @close="showTotpModal = false">
+    <Modal :show="showTotpModal" :title="$t('security.totp.modal-title')" @close="showTotpModal = false">
       <div class="space-y-6">
         <div class="space-y-4">
           <p class="text-sm text-gray-600">
-            1. 使用您的身份验证器 (如 Google Authenticator) 扫描下方二维码：
+            {{ $t('security.totp.step1') }}
           </p>
           <div class="flex justify-center p-4 bg-white border border-gray-100 rounded-2xl">
             <qrcode-vue :value="totpSetupData.uri" :size="200" level="H" />
           </div>
           <div class="space-y-2">
-            <p class="text-xs text-gray-500 text-center">无法扫描二维码？您可以手动输入密钥：</p>
+            <p class="text-xs text-gray-500 text-center">{{ $t('security.totp.manual-tip') }}</p>
             <div class="flex items-center justify-center space-x-2">
-              <code class="px-3 py-1 bg-gray-100 rounded text-sm font-mono text-gray-800">{{ totpSetupData.secret }}</code>
+              <code
+                class="px-3 py-1 bg-gray-100 rounded text-sm font-mono text-gray-800">{{ totpSetupData.secret }}</code>
             </div>
           </div>
         </div>
 
         <div class="space-y-4 border-t border-gray-100 pt-6">
           <p class="text-sm text-gray-600">
-            2. 请输入身份验证器生成的代码进行确认：
+            {{ $t('security.totp.step2') }}
           </p>
           <DigitInput v-model="totpConfirmCode" />
         </div>
       </div>
       <template #footer>
-        <BaseButton
-          @click="handleConfirmTotp"
-          :disabled="totpConfirmCode.length < 6"
-          :loading="totpLoading"
-          label="验证并开启"
-          loading-text="正在验证..."
-        />
-        <BaseButton variant="outline" @click="showTotpModal = false" label="取消" />
+        <BaseButton @click="handleConfirmTotp" :disabled="totpConfirmCode.length < 6" :loading="totpLoading"
+          :label="$t('security.totp.confirm-button')" :loading-text="$t('security.totp.confirming')" />
+        <BaseButton variant="outline" @click="showTotpModal = false" :label="$t('common.cancel')" />
       </template>
     </Modal>
 
     <!-- Email Update Modal -->
-    <Modal :show="showEmailModal" title="修改绑定邮箱" @close="showEmailModal = false">
+    <Modal :show="showEmailModal" :title="$t('security.email.modal-title')" @close="showEmailModal = false">
       <div class="space-y-4">
-        <BaseInput
-          v-model="newEmailForm.newEmail"
-          label="新邮箱地址"
-          type="email"
-          placeholder="请输入新邮箱"
-          show-button
-        >
+        <BaseInput v-model="newEmailForm.newEmail" :label="$t('security.email.new-email-label')" type="email"
+          :placeholder="$t('security.email.new-email-placeholder')" show-button>
           <template #button>
-            <VerificationCodeButton
-              :email="newEmailForm.newEmail"
-              type="UPDATE_EMAIL"
-              class="w-32"
-            />
+            <VerificationCodeButton :email="newEmailForm.newEmail" type="UPDATE_EMAIL" class="w-32" />
           </template>
         </BaseInput>
-        <BaseInput
-          v-model="newEmailForm.verificationCode"
-          label="验证码"
-          placeholder="请输入验证码"
-          autocomplete="one-time-code"
-        />
+        <BaseInput v-model="newEmailForm.verificationCode" :label="$t('security.email.code-label')"
+          :placeholder="$t('security.email.code-placeholder')" autocomplete="one-time-code" />
       </div>
       <template #footer>
-        <BaseButton
-          @click="handleUpdateEmail"
-          :loading="emailLoading"
-          label="保存修改"
-          loading-text="保存中..."
-        />
-        <BaseButton variant="outline" @click="showEmailModal = false" label="取消" />
+        <BaseButton @click="handleUpdateEmail" :loading="emailLoading" :label="$t('security.email.save')"
+          :loading-text="$t('security.email.saving')" />
+        <BaseButton variant="outline" @click="showEmailModal = false" :label="$t('common.cancel')" />
       </template>
     </Modal>
 
     <!-- Email 2FA Activation Modal -->
-    <Modal :show="showEmail2FAModal" title="开启邮箱双重验证" @close="showEmail2FAModal = false">
+    <Modal :show="showEmail2FAModal" :title="$t('security.email-2fa.modal-title')" @close="showEmail2FAModal = false">
       <div class="space-y-6">
         <p class="text-sm text-gray-600">
-          验证码已发送至您的邮箱：<span class="font-semibold text-gray-900">{{ auth.user?.email }}</span>。请输入 6 位动态验证码：
+          {{ $t('security.email-2fa.modal-desc').split('{email}')[0] }}<span class="font-semibold text-gray-900">{{
+            auth.user?.email }}</span>{{ $t('security.email-2fa.modal-desc').split('{email}')[1] }}
         </p>
         <DigitInput v-model="email2FAConfirmCode" />
         <div class="flex justify-center">
-            <button @click="sendEmail2FACode" :disabled="sending2FA || countdown2FA > 0" class="text-sm font-bold text-blue-600 hover:text-blue-700 disabled:opacity-50 transition-colors">
-                {{ countdown2FA > 0 ? `${countdown2FA}s 后可重新获取` : (sending2FA ? '发送中...' : '重新获取验证码') }}
-            </button>
+          <button @click="sendEmail2FACode" :disabled="sending2FA || countdown2FA > 0"
+            class="text-sm font-bold text-blue-600 hover:text-blue-700 disabled:opacity-50 transition-colors">
+            {{ countdown2FA > 0 ? $t('security.email-2fa.resend-after', { count: countdown2FA }) : (sending2FA ?
+              $t('security.email-2fa.resending') : $t('security.email-2fa.resend')) }}
+          </button>
         </div>
       </div>
       <template #footer>
-        <BaseButton
-          @click="confirmToggleEmail2FA"
-          :disabled="email2FAConfirmCode.length < 6"
-          :loading="toggleEmailLoading"
-          label="验证并开启"
-          loading-text="正在验证..."
-        />
-        <BaseButton variant="outline" @click="showEmail2FAModal = false" label="取消" />
+        <BaseButton @click="confirmToggleEmail2FA" :disabled="email2FAConfirmCode.length < 6"
+          :loading="toggleEmailLoading" :label="$t('security.totp.confirm-button')"
+          :loading-text="$t('security.totp.confirming')" />
+        <BaseButton variant="outline" @click="showEmail2FAModal = false" :label="$t('common.cancel')" />
       </template>
     </Modal>
   </div>
@@ -207,9 +165,11 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
+import { useI18n } from 'vue-i18n';
+import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../stores/auth';
 import { useToastStore } from '../stores/toast';
-import { useVerificationCode } from '../utils/useVerificationCode';
+import { useVerificationStore } from '../stores/verification';
 import NavBar from '../components/NavBar.vue';
 import QrcodeVue from 'qrcode.vue';
 import BaseCard from '../components/BaseCard.vue';
@@ -220,6 +180,7 @@ import Modal from '../components/Modal.vue';
 import DigitInput from '../components/DigitInput.vue';
 import api from '../api';
 
+const { t } = useI18n();
 const auth = useAuthStore();
 const toastStore = useToastStore();
 
@@ -233,7 +194,7 @@ const passwordLoading = ref(false);
 
 const handleChangePassword = async () => {
   if (passwordForm.value.newPassword !== confirmPassword.value) {
-    toastStore.error('错误', '两次输入的新密码不一致');
+    toastStore.error(t('common.error'), t('security.messages.password-mismatch'));
     return;
   }
 
@@ -242,13 +203,13 @@ const handleChangePassword = async () => {
   passwordLoading.value = true;
   try {
     await api.put(`/users/${auth.user.username}/password`, passwordForm.value);
-    toastStore.success('修改成功', '您的密码已成功更新，下次登录请使用新密码。');
+    toastStore.success(t('security.messages.password-success'), t('security.messages.password-success-detail'));
     // Clear form
     passwordForm.value.oldPassword = '';
     passwordForm.value.newPassword = '';
     confirmPassword.value = '';
   } catch (e: any) {
-    toastStore.error('修改失败', e.message || '旧密码错误或系统异常');
+    toastStore.error(t('security.messages.password-failed'), e.message || t('security.messages.password-failed-detail'));
   } finally {
     passwordLoading.value = false;
   }
@@ -270,11 +231,12 @@ const totpConfirmCode = ref('');
 // Email 2FA Activation Logic
 const showEmail2FAModal = ref(false);
 const email2FAConfirmCode = ref('');
-const { sending: sending2FA, countdown: countdown2FA, sendCode: sendCodeAction } = useVerificationCode();
+const verificationStore = useVerificationStore();
+const { sending: sending2FA, countdown: countdown2FA } = storeToRefs(verificationStore);
 
 const sendEmail2FACode = async () => {
-    if (!auth.user?.email) return;
-    await sendCodeAction(auth.user.email, '2FA');
+  if (!auth.user?.email) return;
+  await verificationStore.sendCode(auth.user.email, '2FA');
 };
 
 const handleToggleEmail2FA = async () => {
@@ -283,9 +245,9 @@ const handleToggleEmail2FA = async () => {
     toggleEmailLoading.value = true;
     try {
       await auth.toggleTwoFactor(false);
-      toastStore.success('关闭成功', '邮箱双重验证已关闭。');
+      toastStore.success(t('security.messages.email-2fa-disable-success'), t('security.messages.email-2fa-disable-detail'));
     } catch (e: any) {
-      toastStore.error('操作失败', e.message || '系统异常');
+      toastStore.error(t('security.messages.action-failed'), e.message || t('security.messages.system-error'));
     } finally {
       toggleEmailLoading.value = false;
     }
@@ -299,17 +261,17 @@ const handleToggleEmail2FA = async () => {
 
 const confirmToggleEmail2FA = async () => {
   if (email2FAConfirmCode.value.length !== 6) {
-    toastStore.error('错误', '请输入 6 位数字验证码');
+    toastStore.error(t('common.error'), t('security.messages.code-invalid'));
     return;
   }
 
   toggleEmailLoading.value = true;
   try {
     await auth.toggleTwoFactor(true, email2FAConfirmCode.value);
-    toastStore.success('开启成功', '邮箱双重验证已开启。');
+    toastStore.success(t('security.messages.email-2fa-enable-success'), t('security.messages.email-2fa-enable-detail'));
     showEmail2FAModal.value = false;
   } catch (e: any) {
-    toastStore.error('验证失败', e.message || '验证码错误，请重试');
+    toastStore.error(t('security.messages.verify-failed'), e.message || t('security.messages.verify-failed-detail'));
   } finally {
     toggleEmailLoading.value = false;
   }
@@ -321,10 +283,10 @@ const handle2FAAction = async () => {
     toggleLoading.value = true;
     try {
       await api.delete(`/users/${auth.user.username}/2fa/totp`);
-      toastStore.success('关闭成功', '身份验证器已成功关闭。');
+      toastStore.success(t('security.messages.totp-disable-success'), t('security.messages.totp-disable-detail'));
       await auth.fetchCurrentUser();
     } catch (e: any) {
-      toastStore.error('操作失败', e.message || '系统异常');
+      toastStore.error(t('security.messages.action-failed'), e.message || t('security.messages.system-error'));
     } finally {
       toggleLoading.value = false;
     }
@@ -337,7 +299,7 @@ const handle2FAAction = async () => {
       showTotpModal.value = true;
       totpConfirmCode.value = '';
     } catch (e: any) {
-      toastStore.error('初始化失败', e.message || '无法获取 TOTP 配置');
+      toastStore.error(t('security.messages.totp-setup-failed'), e.message || t('security.messages.totp-setup-failed-detail'));
     } finally {
       toggleLoading.value = false;
     }
@@ -346,7 +308,7 @@ const handle2FAAction = async () => {
 
 const handleConfirmTotp = async () => {
   if (totpConfirmCode.value.length !== 6) {
-    toastStore.error('错误', '请输入 6 位数字验证码');
+    toastStore.error(t('common.error'), t('security.messages.code-invalid'));
     return;
   }
 
@@ -356,29 +318,29 @@ const handleConfirmTotp = async () => {
       secret: totpSetupData.value.secret,
       code: totpConfirmCode.value
     });
-    toastStore.success('开启成功', '身份验证器已成功开启。');
+    toastStore.success(t('security.messages.totp-enable-success'), t('security.messages.totp-enable-detail'));
     showTotpModal.value = false;
     await auth.fetchCurrentUser();
   } catch (e: any) {
-    toastStore.error('验证失败', e.message || '验证码错误，请重试');
+    toastStore.error(t('security.messages.verify-failed'), e.message || t('security.messages.verify-failed-detail'));
   } finally {
     totpLoading.value = false;
   }
 };
 
 const handleUpdateEmail = async () => {
-    if (!auth.user?.username) return;
-    emailLoading.value = true;
-    try {
-        await api.put(`/users/${auth.user.username}/email`, newEmailForm.value);
-        toastStore.success('修改成功', '您的邮箱已成功更新。');
-        showEmailModal.value = false;
-        await auth.fetchCurrentUser(); // Refresh user data
-    } catch (e: any) {
-        toastStore.error('修改失败', e.message || '请检查您的验证码是否正确');
-    } finally {
-        emailLoading.value = false;
-    }
+  if (!auth.user?.username) return;
+  emailLoading.value = true;
+  try {
+    await api.put(`/users/${auth.user.username}/email`, newEmailForm.value);
+    toastStore.success(t('security.messages.email-update-success'), t('security.messages.email-update-detail'));
+    showEmailModal.value = false;
+    await auth.fetchCurrentUser(); // Refresh user data
+  } catch (e: any) {
+    toastStore.error(t('security.messages.email-update-failed'), e.message || t('security.messages.email-update-failed-detail'));
+  } finally {
+    emailLoading.value = false;
+  }
 };
 
 onMounted(async () => {

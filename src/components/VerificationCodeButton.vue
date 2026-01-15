@@ -11,7 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import { useVerificationCode } from '../utils/useVerificationCode';
+import { storeToRefs } from 'pinia';
+import { useVerificationStore } from '../stores/verification';
 import BaseButton from './BaseButton.vue';
 
 const props = defineProps<{
@@ -23,10 +24,11 @@ const props = defineProps<{
 
 const emit = defineEmits(['sent']);
 
-const { sending, countdown, sendCode } = useVerificationCode();
+const verificationStore = useVerificationStore();
+const { sending, countdown } = storeToRefs(verificationStore);
 
 const handleClick = async () => {
-  const success = await sendCode(props.email, props.type);
+  const success = await verificationStore.sendCode(props.email, props.type);
   if (success) {
     emit('sent');
   }

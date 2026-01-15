@@ -23,77 +23,77 @@ const router = createRouter({
       path: '/',
       component: AuthWrapper,
       children: [
-        { 
-          path: 'login', 
-          name: 'Login', 
+        {
+          path: 'login',
+          name: 'Login',
           component: Login,
           meta: { guestOnly: true }
         },
-        { 
-          path: 'register', 
-          name: 'Register', 
+        {
+          path: 'register',
+          name: 'Register',
           component: Register,
           meta: { guestOnly: true }
         },
-        { 
-          path: 'forgot-password', 
-          name: 'ForgotPassword', 
+        {
+          path: 'forgot-password',
+          name: 'ForgotPassword',
           component: ForgotPassword,
           meta: { guestOnly: true }
         },
       ]
     },
-    { 
-      path: '/dashboard', 
-      name: 'Dashboard', 
+    {
+      path: '/dashboard',
+      name: 'Dashboard',
       component: Dashboard,
       meta: { requiresAuth: true }
     },
-    { 
-      path: '/notices', 
-      name: 'AllNotices', 
+    {
+      path: '/notices',
+      name: 'AllNotices',
       component: AllNotices,
       meta: { requiresAuth: true }
     },
-    { 
-      path: '/notices/:id', 
-      name: 'NoticeDetail', 
+    {
+      path: '/notices/:id',
+      name: 'NoticeDetail',
       component: NoticeDetail,
       meta: { requiresAuth: true }
     },
-    { 
-      path: '/admin/notices/new', 
-      name: 'NoticeCreate', 
+    {
+      path: '/admin/notices/new',
+      name: 'NoticeCreate',
       component: NoticeEditor,
       meta: { requiresAuth: true, requiresAdmin: true }
     },
-    { 
-      path: '/admin/notices/:id/edit', 
-      name: 'NoticeEdit', 
+    {
+      path: '/admin/notices/:id/edit',
+      name: 'NoticeEdit',
       component: NoticeEditor,
       meta: { requiresAuth: true, requiresAdmin: true }
     },
-    { 
-      path: '/profile', 
-      name: 'Profile', 
+    {
+      path: '/profile',
+      name: 'Profile',
       component: Profile,
       meta: { requiresAuth: true }
     },
-    { 
-      path: '/security', 
-      name: 'Security', 
+    {
+      path: '/security',
+      name: 'Security',
       component: Security,
       meta: { requiresAuth: true }
     },
-    { 
-      path: '/admin/users', 
-      name: 'AdminUsers', 
+    {
+      path: '/admin/users',
+      name: 'AdminUsers',
       component: AdminUsers,
       meta: { requiresAuth: true, requiresAdmin: true }
     },
-    { 
-      path: '/admin/audits', 
-      name: 'AdminAudits', 
+    {
+      path: '/admin/audits',
+      name: 'AdminAudits',
       component: AdminAudits,
       meta: { requiresAuth: true, requiresAdmin: true }
     },

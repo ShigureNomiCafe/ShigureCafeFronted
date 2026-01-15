@@ -1,75 +1,52 @@
 <template>
-  <AuthLayout :title="show2FA ? '二次验证' : '欢迎回来'" :subtitle="show2FA ? (useEmail ? `请输入发送至 ${auth.twoFactorEmail} 的验证码` : '请输入 Authenticator App 中的验证码') : '请登录您的账号'">
+  <AuthLayout :title="show2FA ? t('auth.two-factor.title') : t('auth.login.title')"
+    :subtitle="show2FA ? (useEmail ? t('auth.two-factor.email-subtitle', { email: auth.twoFactorEmail }) : t('auth.two-factor.app-subtitle')) : t('auth.login.subtitle')">
     <form v-if="!show2FA" class="mt-8 space-y-6" @submit.prevent="handleLogin">
       <div class="space-y-4">
-        <BaseInput
-          id="username"
-          v-model="form.username"
-          label="用户名"
-          placeholder="请输入用户名"
-          required
-        />
-        <BaseInput
-          id="password"
-          v-model="form.password"
-          label="密码"
-          type="password"
-          placeholder="请输入密码"
-          required
-        />
+        <BaseInput id="username" v-model="form.username" :label="t('auth.login.username-label')"
+          :placeholder="t('auth.login.username-placeholder')" required />
+        <BaseInput id="password" v-model="form.password" :label="t('auth.login.password-label')" type="password"
+          :placeholder="t('auth.login.password-placeholder')" required />
       </div>
 
-      <BaseButton
-        type="submit"
-        :loading="loading"
-        loading-text="登录中..."
-        label="立即登录"
-        full-width
-      />
+      <BaseButton type="submit" :loading="loading" :loading-text="t('auth.login.logging-in')"
+        :label="t('auth.login.login-button')" full-width />
     </form>
 
     <form v-else class="mt-8 space-y-6" @submit.prevent="handleVerify2FA">
       <div class="space-y-4">
         <div class="group">
-          <label class="block text-sm font-medium text-gray-700 mb-3 ml-1">验证码</label>
+          <label class="block text-sm font-medium text-gray-700 mb-3 ml-1">{{ t('auth.two-factor.code-label') }}</label>
           <DigitInput v-model="twoFactorCode" @complete="handleVerify2FA" />
-          
+
           <div v-if="useEmail" class="mt-4 flex justify-center">
-            <VerificationCodeButton
-              :email="auth.twoFactorEmail || ''"
-              type="2FA"
-              class="min-w-[140px]"
-            />
+            <VerificationCodeButton :email="auth.twoFactorEmail || ''" type="2FA" class="min-w-[140px]" />
           </div>
           <div v-if="auth.hasTotp && auth.hasEmail2fa" class="mt-4 flex justify-center">
-            <button @click="toggleMethod" type="button" class="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
-              {{ useEmail ? '使用身份验证器验证' : '使用邮箱验证码验证' }}
+            <button @click="toggleMethod" type="button"
+              class="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors">
+              {{ useEmail ? t('auth.two-factor.use-app') : t('auth.two-factor.use-email') }}
             </button>
           </div>
         </div>
       </div>
 
       <div>
-        <BaseButton
-          type="submit"
-          :loading="loading"
-          :disabled="twoFactorCode.length < 6"
-          loading-text="验证中..."
-          label="验证并登录"
-          full-width
-        />
-        <button @click="show2FA = false" type="button" class="mt-4 w-full text-sm text-gray-500 hover:text-gray-700 transition-colors">
-          返回登录
+        <BaseButton type="submit" :loading="loading" :disabled="twoFactorCode.length < 6"
+          :loading-text="t('auth.two-factor.verifying')" :label="t('auth.two-factor.verify-button')" full-width />
+        <button @click="show2FA = false" type="button"
+          class="mt-4 w-full text-sm text-gray-500 hover:text-gray-700 transition-colors">
+          {{ t('auth.two-factor.back-to-login') }}
         </button>
       </div>
     </form>
 
     <div v-if="!show2FA" class="flex items-center justify-between text-sm mt-4">
       <router-link to="/register" class="font-medium text-blue-600 hover:text-indigo-500 transition-colors">
-        还没有账号？立即注册
+        {{ t('auth.login.register-link') }}
       </router-link>
       <router-link to="/forgot-password" class="font-medium text-gray-500 hover:text-gray-700 transition-colors">
-        忘记密码？
+        {{ t('auth.login.forgot-password-link') }}
       </router-link>
     </div>
   </AuthLayout>
@@ -80,12 +57,14 @@ import { ref } from 'vue';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
 import { useToastStore } from '../stores/toast';
+import { useI18n } from 'vue-i18n';
 import AuthLayout from '../components/AuthLayout.vue';
 import BaseInput from '../components/BaseInput.vue';
 import BaseButton from '../components/BaseButton.vue';
 import DigitInput from '../components/DigitInput.vue';
 import VerificationCodeButton from '../components/VerificationCodeButton.vue';
 
+const { t } = useI18n();
 const form = ref({ username: '', password: '' });
 const twoFactorCode = ref('');
 
@@ -117,7 +96,7 @@ const handleLogin = async () => {
       router.push('/dashboard');
     }
   } catch (e: any) {
-    toastStore.error('登录失败', e.message || '请检查您的用户名和密码');
+    toastStore.error(t('auth.login.login-failed'), e.message || t('auth.login.login-failed-detail'));
   } finally {
     loading.value = false;
   }
@@ -130,11 +109,9 @@ const handleVerify2FA = async () => {
     await auth.verify2FA(twoFactorCode.value);
     router.push('/dashboard');
   } catch (e: any) {
-    toastStore.error('验证失败', e.message || '验证码错误或已过期');
+    toastStore.error(t('auth.two-factor.verify-failed'), e.message || t('auth.two-factor.verify-failed-detail'));
   } finally {
     loading.value = false;
   }
 };
 </script>
-
-

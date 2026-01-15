@@ -37,7 +37,7 @@ export const useSystemStore = defineStore('system', {
   actions: {
     async fetchReactionTypes() {
       if (this.reactionTypesLoaded) return this.reactionTypes;
-      
+
       try {
         const data = await api.get<ReactionType[]>('/system/reaction-types');
         this.reactionTypes = data;
@@ -57,7 +57,7 @@ export const useSystemStore = defineStore('system', {
       if (Date.now() - this.lastFetched < 1000) {
         return this.updates;
       }
-      
+
       this.loading = true;
       this.fetchPromise = api.get<SystemUpdates>('/system/updates').then(data => {
         this.updates = data;

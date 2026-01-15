@@ -2,6 +2,9 @@ import { defineStore } from 'pinia';
 import api from '../api';
 import { useSystemStore } from './system';
 import { useToastStore } from './toast';
+import i18n from '../locales';
+
+const { t } = i18n.global;
 
 export interface ReactionCount {
   type: string;
@@ -87,14 +90,14 @@ export const useNoticeStore = defineStore('notice', {
       // 1. If we have cache and it's not a forced refresh, switch immediately
       if (!force && this.notices[pageNum]) {
         this.currentPage = pageNum;
-        
+
         // Background check for updates - Fire and forget
         systemStore.fetchUpdates().then(updates => {
           if (updates.noticeLastUpdated > this.globalLastUpdated) {
             this.performFetchNotices(pageNum, sizeNum);
           }
-        }).catch(() => {});
-        
+        }).catch(() => { });
+
         return;
       }
 
@@ -119,9 +122,9 @@ export const useNoticeStore = defineStore('notice', {
             api.get<PaginatedNotices>(url),
             new Promise(resolve => setTimeout(resolve, minDelay))
           ]);
-          
+
           if (force || systemStore.updates.noticeLastUpdated > this.globalLastUpdated) {
-              this.notices = {};
+            this.notices = {};
           }
 
           this.notices[pageNum] = response.content;
@@ -134,7 +137,7 @@ export const useNoticeStore = defineStore('notice', {
 
           this.saveToLocalStorage();
         } catch (error: any) {
-          toastStore.error('加载公告失败', error.message);
+          toastStore.error(t('notices.messages.fetch-list-failed'), error.message);
         } finally {
           this.loading = false;
           delete this.fetchPromises[cacheKey];
@@ -150,32 +153,32 @@ export const useNoticeStore = defineStore('notice', {
         this.updateNoticeInCache(data);
         return data;
       } catch (error: any) {
-        toastStore.error('获取公告详情失败', error.message);
+        toastStore.error(t('notices.messages.fetch-detail-failed'), error.message);
         throw error;
       }
     },
     async fetchReactions(id: number) {
-        try {
-            const data = await api.get<ReactionCount[]>(`/notices/${id}/reactions`);
-            this.reactions[id] = data;
-            return data;
-        } catch (error) {
-            throw error;
-        }
+      try {
+        const data = await api.get<ReactionCount[]>(`/notices/${id}/reactions`);
+        this.reactions[id] = data;
+        return data;
+      } catch (error) {
+        throw error;
+      }
     },
     async fetchReactionsForList(noticeIds: number[]) {
-        if (noticeIds.length === 0) return;
-        try {
-            const data = await api.post<Record<number, ReactionCount[]>>(`/notices/reactions/batch`, noticeIds);
-            Object.keys(data).forEach(key => {
-                const id = Number(key);
-                if (data[id]) {
-                    this.reactions[id] = data[id];
-                }
-            });
-        } catch (error) {
-            // Batch reactions fail silently
-        }
+      if (noticeIds.length === 0) return;
+      try {
+        const data = await api.post<Record<number, ReactionCount[]>>(`/notices/reactions/batch`, noticeIds);
+        Object.keys(data).forEach(key => {
+          const id = Number(key);
+          if (data[id]) {
+            this.reactions[id] = data[id];
+          }
+        });
+      } catch (error) {
+        // Batch reactions fail silently
+      }
     },
     async toggleReaction(noticeId: number, type: string) {
       const toastStore = useToastStore();
@@ -184,7 +187,7 @@ export const useNoticeStore = defineStore('notice', {
         this.reactions[noticeId] = data;
         return data;
       } catch (error: any) {
-        toastStore.error('操作失败', error.message);
+        toastStore.error(t('notices.messages.action-failed'), error.message);
         throw error;
       }
     },

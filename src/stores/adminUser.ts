@@ -2,6 +2,9 @@ import { defineStore } from 'pinia';
 import api from '../api';
 import { useSystemStore } from './system';
 import { useToastStore } from './toast';
+import i18n from '../locales';
+
+const { t } = i18n.global;
 
 export interface User {
   username: string;
@@ -82,14 +85,14 @@ export const useAdminUserStore = defineStore('adminUser', {
       // 1. If we have cache and it's not a forced refresh, switch immediately
       if (!force && this.usersMap[pageNum]) {
         this.currentPage = pageNum;
-        
+
         // Background check for updates - Fire and forget
         systemStore.fetchUpdates().then(updates => {
           if (updates.userLastUpdated > this.globalLastUpdated) {
             this.performFetchUsers(pageNum, sizeNum);
           }
-        }).catch(() => {});
-        
+        }).catch(() => { });
+
         return;
       }
 
@@ -104,7 +107,7 @@ export const useAdminUserStore = defineStore('adminUser', {
       const systemStore = useSystemStore();
       const toastStore = useToastStore();
       this.loading = true;
-      
+
       const minDelay = 1000;
 
       this.fetchPromises[cacheKey] = (async () => {
@@ -115,7 +118,7 @@ export const useAdminUserStore = defineStore('adminUser', {
             }),
             new Promise(resolve => setTimeout(resolve, minDelay))
           ]);
-          
+
           if (force || systemStore.updates.userLastUpdated > this.globalLastUpdated) {
             this.usersMap = {};
           }
@@ -125,13 +128,13 @@ export const useAdminUserStore = defineStore('adminUser', {
           this.pageSize = data.pageSize;
           this.totalElements = data.totalElements;
           this.totalPages = data.totalPages;
-          
+
           this.globalLastUpdated = data.timestamp;
           this.fetchCount++;
-          
+
           this.saveToLocalStorage();
         } catch (error: any) {
-          toastStore.error('加载用户列表失败', error.message);
+          toastStore.error(t('admin-users.messages.fetch-failed'), error.message);
         } finally {
           this.loading = false;
           delete this.fetchPromises[cacheKey];
