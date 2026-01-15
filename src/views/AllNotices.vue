@@ -5,10 +5,7 @@
     <div class="py-10 transition-all duration-500 ease-in-out">
       <header>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-16">
-          <div class="flex items-center space-x-4" v-if="!isSearchExpanded">
-            <button @click="$router.back()" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600">
-              <ArrowLeft class="h-6 w-6" />
-            </button>
+          <div class="flex items-center" v-if="!isSearchExpanded">
             <h1 class="text-2xl sm:text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
               {{ t('notices.title') }}
             </h1>
@@ -147,7 +144,7 @@ import Modal from '../components/Modal.vue';
 import Pagination from '../components/Pagination.vue';
 import api from '../api';
 import {
-  Loader2, ArrowLeft,
+  Loader2,
   Search, Plus, RotateCw, X, Trash2
 } from 'lucide-vue-next';
 

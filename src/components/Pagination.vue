@@ -1,33 +1,21 @@
 <template>
   <div class="flex items-center justify-between px-4 py-3 sm:px-6">
     <div class="flex flex-1 items-center justify-between sm:hidden">
-      <button
-        @click="$emit('page-change', currentPage - 1)"
-        :disabled="currentPage === 0"
-        class="relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:text-gray-400 transition-colors"
-      >
+      <button @click="$emit('page-change', currentPage - 1)" :disabled="currentPage === 0"
+        class="relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:text-gray-400 transition-colors">
         <ChevronLeft class="h-4 w-4 mr-1" />
         上一页
       </button>
 
       <div class="flex items-center space-x-2">
-        <input
-          v-model="jumpPageInput"
-          type="text"
-          inputmode="numeric"
-          pattern="[0-9]*"
+        <input v-model="jumpPageInput" type="text" inputmode="numeric" pattern="[0-9]*"
           class="w-10 px-1 py-1.5 text-sm text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all"
-          @keyup.enter="handleJump"
-          @blur="jumpPageInput = (currentPage + 1).toString()"
-        />
+          @keyup.enter="handleJump" @blur="jumpPageInput = (currentPage + 1).toString()" />
         <span class="text-xs font-medium text-gray-500">/ {{ totalPages }}</span>
       </div>
 
-      <button
-        @click="$emit('page-change', currentPage + 1)"
-        :disabled="currentPage >= totalPages - 1"
-        class="relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:text-gray-400 transition-colors"
-      >
+      <button @click="$emit('page-change', currentPage + 1)" :disabled="currentPage >= totalPages - 1"
+        class="relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:text-gray-400 transition-colors">
         下一页
         <ChevronRight class="h-4 w-4 ml-1" />
       </button>
@@ -49,60 +37,40 @@
         <div class="flex items-center space-x-2 mr-2">
           <span class="text-sm text-gray-500">跳转至</span>
           <div class="relative">
-            <input
-              v-model="jumpPageInput"
-              type="text"
+            <input v-model="jumpPageInput" type="text"
               class="w-12 px-2 py-1 text-sm text-center border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
-              @keyup.enter="handleJump"
-              @blur="jumpPageInput = (currentPage + 1).toString()"
-            />
+              @keyup.enter="handleJump" @blur="jumpPageInput = (currentPage + 1).toString()" />
           </div>
           <span class="text-sm text-gray-500">/ {{ totalPages }} 页</span>
-          <button 
-            @mousedown.prevent
-            @click="handleJump"
-            class="p-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-            title="跳转"
-          >
+          <button @mousedown.prevent @click="handleJump"
+            class="p-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="跳转">
             <ArrowRight class="h-4 w-4" />
           </button>
         </div>
 
         <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-          <button
-            @click="$emit('page-change', currentPage - 1)"
-            :disabled="currentPage === 0"
-            class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button @click="$emit('page-change', currentPage - 1)" :disabled="currentPage === 0"
+            class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
             <span class="sr-only">Previous</span>
             <ChevronLeft class="h-5 w-5" aria-hidden="true" />
           </button>
-          
+
           <template v-for="page in displayedPages" :key="page">
-            <button
-              v-if="page !== -1"
-              @click="$emit('page-change', page)"
-              :class="[
-                page === currentPage
-                  ? 'relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white focus:z-20'
-                  : 'relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-              ]"
-            >
+            <button v-if="page !== -1" @click="$emit('page-change', page)" :class="[
+              page === currentPage
+                ? 'relative z-10 inline-flex items-center bg-blue-600 px-4 py-2 text-sm font-semibold text-white focus:z-20'
+                : 'relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+            ]">
               {{ page + 1 }}
             </button>
-            <span
-              v-else
-              class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0"
-            >
+            <span v-else
+              class="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
               ...
             </span>
           </template>
 
-          <button
-            @click="$emit('page-change', currentPage + 1)"
-            :disabled="currentPage >= totalPages - 1"
-            class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
+          <button @click="$emit('page-change', currentPage + 1)" :disabled="currentPage >= totalPages - 1"
+            class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
             <span class="sr-only">Next</span>
             <ChevronRight class="h-5 w-5" aria-hidden="true" />
           </button>
