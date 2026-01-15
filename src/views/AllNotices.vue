@@ -143,7 +143,7 @@ import Modal from '../components/Modal.vue';
 import Pagination from '../components/Pagination.vue';
 import {
   Loader2,
-  Search, Plus, RotateCw, X, Trash2
+  Search, Plus, RotateCw, X, Trash2, Megaphone
 } from 'lucide-vue-next';
 
 const auth = useAuthStore();

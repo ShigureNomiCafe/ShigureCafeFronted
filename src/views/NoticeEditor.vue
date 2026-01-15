@@ -157,7 +157,7 @@ const saveNotice = async () => {
     // Redirect logic: use redirect query param if available, otherwise default to /notices
     const redirectPath = route.query.redirect as string;
     if (redirectPath) {
-      router.push(redirectPath);
+      router.replace(redirectPath);
     } else {
       router.push('/notices');
     }

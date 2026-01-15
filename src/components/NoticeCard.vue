@@ -13,7 +13,6 @@
             notice.pinned ? 'bg-orange-100' : 'bg-blue-100',
             compact ? 'h-10 w-10' : 'h-12 w-12'
           ]">
-          <Megaphone v-if="notice.pinned" :class="[notice.pinned ? 'text-orange-600' : 'text-blue-600', compact ? 'h-5 w-5' : 'h-6 w-6']" />
           <component :is="notice.pinned ? Megaphone : Bell" 
             :class="[notice.pinned ? 'text-orange-600' : 'text-blue-600', compact ? 'h-5 w-5' : 'h-6 w-6']" 
           />

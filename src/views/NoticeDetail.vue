@@ -6,7 +6,7 @@
       <header>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div class="flex items-center space-x-4">
-            <button @click="$router.back()" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600">
+            <button @click="$router.push('/notices')" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600">
               <ArrowLeft class="h-6 w-6" />
             </button>
             <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
