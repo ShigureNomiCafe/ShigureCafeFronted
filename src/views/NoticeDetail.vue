@@ -48,22 +48,21 @@
                       </svg>
                     </span>
                   </div>
-                  <div class="flex-1">
-                    <div class="flex justify-between items-start mb-6">
-                      <div class="flex items-center">
-                        <h4 class="text-2xl font-bold text-gray-900">{{ notice.title }}</h4>
-                        <span v-if="notice.pinned"
-                          class="ml-3 px-2 py-1 text-xs font-bold uppercase tracking-wider bg-orange-100 text-orange-700 rounded-md">
-                          {{ t('notices.pinned') }}
-                        </span>
-                      </div>
-                      <div class="text-right">
-                        <span class="block text-sm text-gray-500">{{ formatDateTime(notice.createdAt) }}</span>
-                      </div>
-                    </div>
-                    <div class="prose prose-indigo max-w-none text-gray-700 leading-relaxed"
-                      v-html="renderMarkdown(notice.content)"></div>
-
+                                      <div class="flex-1 min-w-0">
+                                        <div class="flex justify-between items-start mb-6">
+                                          <div class="flex items-center min-w-0">
+                                            <h4 class="text-2xl font-bold text-gray-900 break-words">{{ notice.title }}</h4>
+                                            <span v-if="notice.pinned"
+                                              class="ml-3 px-2 py-1 text-xs font-bold uppercase tracking-wider bg-orange-100 text-orange-700 rounded-md flex-shrink-0">
+                                              {{ t('notices.pinned') }}
+                                            </span>
+                                          </div>
+                                          <div class="text-right ml-4 flex-shrink-0">
+                                            <span class="block text-sm text-gray-500">{{ formatDateTime(notice.createdAt) }}</span>
+                                          </div>
+                                        </div>
+                                        <div class="prose prose-indigo max-w-none text-gray-700 leading-relaxed break-words"
+                                          v-html="renderMarkdown(notice.content)"></div>
                     <!-- Emoji Reactions -->
                     <div v-if="notice" class="mt-8 pt-6 border-t border-gray-50">
                       <div class="flex flex-wrap items-center gap-2">
@@ -144,7 +143,7 @@ import { useSystemStore } from '../stores/system';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import { Loader2, ArrowLeft, Edit2, Plus } from 'lucide-vue-next';
-import { marked } from 'marked';
+import { renderMarkdown } from '../utils/markdown';
 import { formatDateTime } from '../utils/formatters';
 
 const { t } = useI18n();
@@ -219,10 +218,6 @@ const fetchNotice = async () => {
   } finally {
     loading.value = false;
   }
-};
-
-const renderMarkdown = (content: string) => {
-  return marked.parse(content);
 };
 
 onMounted(async () => {

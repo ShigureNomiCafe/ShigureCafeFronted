@@ -70,7 +70,7 @@
                 <div class="flex items-center justify-between mb-2">
                   <h2 class="text-lg font-bold text-gray-900">{{ t('notices.editor.preview') }}</h2>
                 </div>
-                <BaseCard body-class="p-8 prose prose-indigo max-w-none min-h-[400px]">
+                <BaseCard body-class="p-8 prose prose-indigo max-w-none min-h-[400px] break-words">
                   <h1 v-if="form.title">{{ form.title }}</h1>
                   <div v-if="!form.content" class="text-gray-400 italic text-center py-20">
                     {{ t('notices.editor.preview-placeholder') }}
@@ -98,7 +98,7 @@ import api from '../api';
 import { useNoticeStore } from '../stores/notice';
 import { useToastStore } from '../stores/toast';
 import { ArrowLeft, Save, Loader2, ArrowUpToLine } from 'lucide-vue-next';
-import { marked } from 'marked';
+import { renderMarkdown } from '../utils/markdown';
 
 const { t } = useI18n();
 const route = useRoute();
@@ -166,10 +166,6 @@ const saveNotice = async () => {
   } finally {
     saving.value = false;
   }
-};
-
-const renderMarkdown = (content: string) => {
-  return marked.parse(content);
 };
 
 onMounted(() => {

@@ -170,67 +170,14 @@
             <div v-else class="space-y-4">
               <div v-for="(notice, index) in displayedNotices" :key="notice.id" class="animate-slide-up"
                 :class="getNoticeDelay(index)">
-                <BaseCard @click="$router.push(`/notices/${notice.id}`)" hoverable body-class="p-6"
-                  :border="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'">
-                  <div class="flex items-start space-x-4">
-                    <div class="flex-shrink-0">
-                      <span class="inline-flex items-center justify-center h-10 w-10 rounded-full"
-                        :class="notice.pinned ? 'bg-orange-100' : 'bg-blue-100'">
-                        <svg class="h-6 w-6" :class="notice.pinned ? 'text-orange-600' : 'text-blue-600'" fill="none"
-                          viewBox="0 0 24 24" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                        </svg>
-                      </span>
-                    </div>
-                    <div class="flex-1">
-                      <div class="flex justify-between items-start">
-                        <div class="flex items-center">
-                          <h4 class="text-lg font-bold text-gray-900">{{ notice.title }}</h4>
-                          <span v-if="notice.pinned"
-                            class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 rounded-md">
-                            {{ t('notices.pinned') }}
-                          </span>
-                        </div>
-                        <span class="text-xs text-gray-400">{{ formatDateTime(notice.createdAt) }}</span>
-                      </div>
-                      <div class="mt-2 prose prose-sm prose-slate max-w-none text-gray-600 line-clamp-3 overflow-hidden"
-                        v-html="renderMarkdown(notice.content)"></div>
-
-                      <!-- Reaction Summary -->
-                      <div v-if="noticeStore.getReactions(notice.id).length > 0"
-                        class="mt-2 flex flex-wrap items-center gap-1">
-                        <span v-for="reaction in noticeStore.getReactions(notice.id).slice(0, 5)" :key="reaction.type"
-                          class="inline-flex items-center space-x-1 text-[9px] font-bold text-gray-500 bg-gray-50 border border-gray-100 px-1.5 py-0 rounded-full">
-                          <span>{{ getEmoji(reaction.type) }}</span>
-                          <span>{{ reaction.count }}</span>
-                        </span>
-                      </div>
-
-                      <div class="mt-4 flex items-center justify-between">
-                        <div class="flex items-center text-xs text-gray-500">
-                          <span class="font-medium mr-2">{{ notice.authorNickname }}</span>
-                          <span v-if="notice.updatedAt !== notice.createdAt" class="italic">{{ t('notices.edited', {
-                            time:
-                            formatDateTime(notice.updatedAt) }) }}</span>
-                        </div>
-                        <div class="flex items-center space-x-3">
-                          <button v-if="auth.user?.role === 'ADMIN'"
-                            @click="$router.push(`/admin/notices/${notice.id}/edit?redirect=/dashboard`)"
-                            class="text-xs font-bold text-gray-500 hover:text-indigo-600 transition-colors flex items-center">
-                            <Edit2 class="h-3 w-3 mr-0.5" />
-                            {{ t('notices.edit') }}
-                          </button>
-                          <button @click="$router.push(`/notices/${notice.id}`)"
-                            class="text-xs font-bold text-indigo-600 hover:text-indigo-500 transition-colors flex items-center">
-                            {{ t('notices.read-full') }}
-                            <ChevronRight class="h-3 w-3 ml-0.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </BaseCard>
+                <NoticeCard 
+                  :notice="notice" 
+                  compact
+                  :is-admin="auth.user?.role === 'ADMIN'"
+                  @click="$router.push(`/notices/${notice.id}`)"
+                  @edit="$router.push(`/admin/notices/${notice.id}/edit?redirect=/dashboard`)"
+                  @read="$router.push(`/notices/${notice.id}`)"
+                />
               </div>
             </div>
           </div>
@@ -249,8 +196,9 @@ import { useNoticeStore } from '../stores/notice';
 import { useSystemStore } from '../stores/system';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
+import NoticeCard from '../components/NoticeCard.vue';
 import { Loader2, ChevronRight, Edit2 } from 'lucide-vue-next';
-import { marked } from 'marked';
+import { renderMarkdown } from '../utils/markdown';
 import { formatDateTime } from '../utils/formatters';
 
 const { t } = useI18n();
@@ -266,27 +214,13 @@ const displayedNotices = computed(() => {
   return [...pinned, ...unpinned];
 });
 
-const getEmoji = (type: string) => systemStore.reactionMap[type] || '❓';
-
-// Calculate the base delay for the notice section based on user role
 const noticeDelayBase = computed(() => {
-  // 2 base cards + (up to 3 admin cards)
-  const cardCount = auth.user?.role === 'ADMIN' ? 5 : 2;
-  const baseDelay = (cardCount + 2) * 50; // + header items (Title + Date)
-  return `animate-delay-${baseDelay}`;
+  return auth.user?.role === 'ADMIN' ? 'animate-delay-200' : 'animate-delay-100';
 });
 
 const getNoticeDelay = (index: number) => {
-  const cardCount = auth.user?.role === 'ADMIN' ? 5 : 2;
-  const headerCount = 2; // Title + Date
-  const sectionHeaderCount = 1;
-  const totalPreceding = cardCount + headerCount + sectionHeaderCount;
-  const itemDelay = (totalPreceding + index) * 50;
-  return `animate-delay-${itemDelay}`;
-};
-
-const renderMarkdown = (content: string) => {
-  return marked.parse(content);
+  const base = auth.user?.role === 'ADMIN' ? 250 : 150;
+  return `animate-delay-${base + index * 50}`;
 };
 
 onMounted(async () => {

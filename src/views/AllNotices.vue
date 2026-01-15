@@ -85,79 +85,17 @@
                   <p>{{ searchQuery ? t('notices.no-matching-notices') : t('notices.no-notices') }}</p>
                 </div>
                 <div v-else class="space-y-6">
-                  <div v-for="(notice, index) in filteredNotices" :key="notice.id" class="animate-slide-up"
-                    :style="{ animationDelay: `${(index + 3) * 50}ms` }">
-                    <BaseCard @click="$router.push(`/notices/${notice.id}`)" hoverable body-class="p-6"
-                      :class="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'">
-                      <div class="flex items-start space-x-4">
-                        <div class="flex-shrink-0">
-                          <span class="inline-flex items-center justify-center h-10 w-10 rounded-full"
-                            :class="notice.pinned ? 'bg-orange-100' : 'bg-blue-100'">
-                            <svg class="h-6 w-6" :class="notice.pinned ? 'text-orange-600' : 'text-blue-600'"
-                              fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                            </svg>
-                          </span>
-                        </div>
-                        <div class="flex-1">
-                          <div class="flex justify-between items-start">
-                            <div class="flex items-center">
-                              <h4 class="text-xl font-bold text-gray-900">{{ notice.title }}</h4>
-                              <span v-if="notice.pinned"
-                                class="ml-2 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 rounded-md">
-                                {{ t('notices.pinned') }}
-                              </span>
-                            </div>
-                            <span class="text-sm text-gray-400">{{ formatDateTime(notice.createdAt) }}</span>
-                          </div>
-                          <div class="mt-4 prose prose-slate max-w-none text-gray-600 line-clamp-3 overflow-hidden"
-                            v-html="renderMarkdown(notice.content)"></div>
-
-                          <!-- Reaction Summary -->
-                          <div v-if="noticeStore.getReactions(notice.id).length > 0"
-                            class="mt-3 flex flex-wrap items-center gap-1.5">
-                            <span v-for="reaction in noticeStore.getReactions(notice.id).slice(0, 5)"
-                              :key="reaction.type"
-                              class="inline-flex items-center space-x-1 text-[10px] font-bold text-gray-500 bg-gray-50 border border-gray-100 px-2 py-0.5 rounded-full">
-                              <span>{{ getEmoji(reaction.type) }}</span>
-                              <span>{{ reaction.count }}</span>
-                            </span>
-                            <span v-if="noticeStore.getReactions(notice.id).length > 5"
-                              class="text-[10px] text-gray-400">...</span>
-                          </div>
-
-                          <div class="mt-6 flex items-center justify-between border-t border-gray-50 pt-4">
-                            <div class="flex items-center text-sm text-gray-500">
-                              <span class="font-medium text-gray-900 mr-2">{{ notice.authorNickname }}</span>
-                              <span v-if="notice.updatedAt !== notice.createdAt" class="italic"> {{ t('notices.edited',
-                                { time: formatDateTime(notice.updatedAt) }) }}</span>
-                            </div>
-                            <div class="flex items-center space-x-4">
-                              <template v-if="auth.user?.role === 'ADMIN'">
-                                <button @click.stop="$router.push(`/admin/notices/${notice.id}/edit?redirect=/notices`)"
-                                  class="text-sm font-bold text-gray-500 hover:text-indigo-600 transition-colors flex items-center">
-                                  <Edit2 class="h-4 w-4 mr-1" />
-                                  {{ t('notices.edit') }}
-                                </button>
-                                <button @click.stop="confirmDelete(notice)"
-                                  class="text-sm font-bold text-red-500 hover:text-red-600 transition-colors flex items-center">
-                                  <Trash2 class="h-4 w-4 mr-1" />
-                                  {{ t('notices.delete') }}
-                                </button>
-                              </template>
-                              <button @click.stop="$router.push(`/notices/${notice.id}`)"
-                                class="text-sm font-bold text-indigo-600 hover:text-indigo-500 transition-colors flex items-center">
-                                {{ t('notices.read-full') }}
-                                <ChevronRight class="h-4 w-4 ml-1" />
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </BaseCard>
-                  </div>
-
+                                  <div v-for="(notice, index) in filteredNotices" :key="notice.id" class="animate-slide-up"
+                                    :style="{ animationDelay: `${(index + 3) * 50}ms` }">
+                                    <NoticeCard 
+                                      :notice="notice" 
+                                      :is-admin="auth.user?.role === 'ADMIN'"
+                                      @click="$router.push(`/notices/${notice.id}`)"
+                                      @edit="$router.push(`/admin/notices/${notice.id}/edit?redirect=/notices`)"
+                                      @delete="confirmDelete(notice)"
+                                      @read="$router.push(`/notices/${notice.id}`)"
+                                    />
+                                  </div>
                   <!-- Pagination Controls -->
                   <Pagination v-if="filteredNotices.length > 0"
                     :current-page="searchQuery ? 0 : noticeStore.currentPage"
@@ -203,17 +141,15 @@ import { useNoticeStore, type Notice } from '../stores/notice';
 import { useToastStore } from '../stores/toast';
 import { useSystemStore } from '../stores/system';
 import NavBar from '../components/NavBar.vue';
-import BaseCard from '../components/BaseCard.vue';
 import BaseButton from '../components/BaseButton.vue';
+import NoticeCard from '../components/NoticeCard.vue';
 import Modal from '../components/Modal.vue';
 import Pagination from '../components/Pagination.vue';
 import api from '../api';
 import {
-  Loader2, ArrowLeft, ChevronRight, Edit2,
-  Search, Plus, RotateCw, X, Trash2, Megaphone
+  Loader2, ArrowLeft,
+  Search, Plus, RotateCw, X, Trash2
 } from 'lucide-vue-next';
-import { marked } from 'marked';
-import { formatDateTime } from '../utils/formatters';
 
 const auth = useAuthStore();
 const noticeStore = useNoticeStore();
@@ -226,8 +162,6 @@ const isSearchExpanded = ref(false);
 const searchInput = ref<HTMLInputElement | null>(null);
 const showDeleteModal = ref(false);
 const selectedNotice = ref<Notice | null>(null);
-
-const getEmoji = (type: string) => systemStore.reactionMap[type] || '❓';
 
 watch(isSearchExpanded, (val) => {
   if (val) {
@@ -246,10 +180,6 @@ const filteredNotices = computed(() => {
     notice.authorNickname?.toLowerCase().includes(q)
   );
 });
-
-const renderMarkdown = (content: string) => {
-  return marked.parse(content);
-};
 
 const handlePageChange = async (page: number, force = false) => {
   const isPageChange = page !== noticeStore.currentPage;
