@@ -1,18 +1,14 @@
 <template>
-  <BaseButton
-    variant="secondary"
-    @click="handleClick"
-    :disabled="disabled || sending || countdown > 0"
-    :loading="sending"
-    loading-text="发送中..."
-    :label="countdown > 0 ? `${countdown}s 后重新获取` : (label || '获取验证码')"
-    v-bind="$attrs"
-  />
+  <BaseButton variant="secondary" @click="handleClick" :disabled="disabled || sending || countdown > 0"
+    :loading="sending" :loading-text="t('verification.sending')"
+    :label="countdown > 0 ? t('verification.resend-after', { count: countdown }) : (label || t('verification.get-code'))"
+    v-bind="$attrs" />
 </template>
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { useVerificationStore } from '../stores/verification';
+import { useI18n } from 'vue-i18n';
 import BaseButton from './BaseButton.vue';
 
 const props = defineProps<{
@@ -24,6 +20,7 @@ const props = defineProps<{
 
 const emit = defineEmits(['sent']);
 
+const { t } = useI18n();
 const verificationStore = useVerificationStore();
 const { sending, countdown } = storeToRefs(verificationStore);
 

@@ -4,54 +4,54 @@
       <button @click="$emit('page-change', currentPage - 1)" :disabled="currentPage === 0"
         class="relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:text-gray-400 transition-colors">
         <ChevronLeft class="h-4 w-4 mr-1" />
-        上一页
+        {{ t('pagination.previous') }}
       </button>
 
       <div class="flex items-center space-x-2">
         <input v-model="jumpPageInput" type="text" inputmode="numeric" pattern="[0-9]*"
           class="w-10 px-1 py-1.5 text-sm text-center border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 transition-all"
           @keyup.enter="handleJump" @blur="jumpPageInput = (currentPage + 1).toString()" />
-        <span class="text-xs font-medium text-gray-500">/ {{ totalPages }}</span>
+        <span class="text-xs font-medium text-gray-500">{{ t('pagination.total-pages-simple', { total: totalPages })
+          }}</span>
       </div>
 
       <button @click="$emit('page-change', currentPage + 1)" :disabled="currentPage >= totalPages - 1"
         class="relative inline-flex items-center rounded-lg px-3 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:text-gray-400 transition-colors">
-        下一页
+        {{ t('pagination.next') }}
         <ChevronRight class="h-4 w-4 ml-1" />
       </button>
     </div>
     <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
       <div>
         <p class="text-sm text-gray-700">
-          显示第
-          <span class="font-medium">{{ totalElements > 0 ? currentPage * pageSize + 1 : 0 }}</span>
-          至
-          <span class="font-medium">{{ Math.min((currentPage + 1) * pageSize, totalElements) }}</span>
-          条，共
-          <span class="font-medium">{{ totalElements }}</span>
-          条结果
+          {{ t('pagination.info', {
+            from: totalElements > 0 ? currentPage * pageSize + 1 : 0,
+            to: Math.min((currentPage + 1) * pageSize, totalElements),
+            total: totalElements
+          }) }}
         </p>
       </div>
       <div class="flex items-center space-x-4">
         <!-- Jump to Page -->
         <div class="flex items-center space-x-2 mr-2">
-          <span class="text-sm text-gray-500">跳转至</span>
+          <span class="text-sm text-gray-500">{{ t('pagination.jump-to') }}</span>
           <div class="relative">
             <input v-model="jumpPageInput" type="text"
               class="w-12 px-2 py-1 text-sm text-center border border-gray-300 rounded-md focus:outline-none focus:border-blue-500"
               @keyup.enter="handleJump" @blur="jumpPageInput = (currentPage + 1).toString()" />
           </div>
-          <span class="text-sm text-gray-500">/ {{ totalPages }} 页</span>
+          <span class="text-sm text-gray-500">{{ t('pagination.total-pages', { total: totalPages }) }}</span>
           <button @mousedown.prevent @click="handleJump"
-            class="p-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" title="跳转">
+            class="p-1 text-blue-600 hover:bg-blue-50 rounded-md transition-colors" :title="t('pagination.jump')">
             <ArrowRight class="h-4 w-4" />
           </button>
         </div>
 
-        <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+        <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm"
+          :aria-label="t('pagination.pagination-label')">
           <button @click="$emit('page-change', currentPage - 1)" :disabled="currentPage === 0"
             class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
-            <span class="sr-only">Previous</span>
+            <span class="sr-only">{{ t('pagination.sr-previous') }}</span>
             <ChevronLeft class="h-5 w-5" aria-hidden="true" />
           </button>
 
@@ -71,7 +71,7 @@
 
           <button @click="$emit('page-change', currentPage + 1)" :disabled="currentPage >= totalPages - 1"
             class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:opacity-50 disabled:cursor-not-allowed">
-            <span class="sr-only">Next</span>
+            <span class="sr-only">{{ t('pagination.sr-next') }}</span>
             <ChevronRight class="h-5 w-5" aria-hidden="true" />
           </button>
         </nav>
@@ -82,7 +82,10 @@
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-vue-next';
+
+const { t } = useI18n();
 
 const props = defineProps<{
   currentPage: number;

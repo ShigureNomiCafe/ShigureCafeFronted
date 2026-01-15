@@ -14,7 +14,7 @@ const props = defineProps<{
 }>();
 
 const label = computed(() => {
-  if (props.isExpired) return '已过期';
+  if (props.isExpired) return formatStatus('EXPIRED');
   return formatStatus(props.status);
 });
 

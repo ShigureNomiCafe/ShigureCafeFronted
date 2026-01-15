@@ -16,7 +16,7 @@
             class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
             <template #name>
               <span class="text-indigo-600">{{ auth.user?.nickname || auth.user?.username || t('dashboard.default-user')
-                }}</span>
+              }}</span>
             </template>
           </i18n-t>
           <p class="text-sm text-gray-500 mt-1">{{ t('dashboard.today', { date: new Date().toLocaleDateString() }) }}
@@ -170,14 +170,10 @@
             <div v-else class="space-y-4">
               <div v-for="(notice, index) in displayedNotices" :key="notice.id" class="animate-slide-up"
                 :class="getNoticeDelay(index)">
-                <NoticeCard 
-                  :notice="notice" 
-                  compact
-                  :is-admin="auth.user?.role === 'ADMIN'"
+                <NoticeCard :notice="notice" compact :is-admin="auth.user?.role === 'ADMIN'"
                   @click="$router.push(`/notices/${notice.id}`)"
                   @edit="$router.push(`/admin/notices/${notice.id}/edit?redirect=/dashboard`)"
-                  @read="$router.push(`/notices/${notice.id}`)"
-                />
+                  @read="$router.push(`/notices/${notice.id}`)" />
               </div>
             </div>
           </div>
@@ -197,9 +193,7 @@ import { useSystemStore } from '../stores/system';
 import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import NoticeCard from '../components/NoticeCard.vue';
-import { Loader2, ChevronRight, Edit2 } from 'lucide-vue-next';
-import { renderMarkdown } from '../utils/markdown';
-import { formatDateTime } from '../utils/formatters';
+import { Loader2, ChevronRight } from 'lucide-vue-next';
 
 const { t } = useI18n();
 const auth = useAuthStore();

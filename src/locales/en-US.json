@@ -16,7 +16,8 @@
     "statuses": {
       "ACTIVE": "Active",
       "PENDING": "Pending",
-      "BANNED": "Banned"
+      "BANNED": "Banned",
+      "EXPIRED": "Expired"
     }
   },
   "admin-audit": {
@@ -437,6 +438,9 @@
     }
   },
   "verification": {
+    "sending": "Sending...",
+    "get-code": "Get Code",
+    "resend-after": "Resend in {count}s",
     "messages": {
       "send-failed": "Send Failed",
       "enter-email": "Please enter email address",
@@ -445,6 +449,18 @@
       "send-success-detail": "Verification code has been sent to your email, please check your inbox.",
       "request-failed": "Request failed, please try again later"
     }
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "info": "{from} to {to} of {total} results",
+    "jump-to": "Jump to",
+    "total-pages": "/ {total} Pages",
+    "total-pages-simple": "/ {total}",
+    "jump": "Jump",
+    "sr-previous": "Previous",
+    "sr-next": "Next",
+    "pagination-label": "Pagination"
   },
   "errors": {
     "AUTHENTICATION_FAILED": "Invalid username or password",
