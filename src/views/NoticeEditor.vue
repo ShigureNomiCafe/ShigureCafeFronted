@@ -94,7 +94,6 @@ import NavBar from '../components/NavBar.vue';
 import BaseCard from '../components/BaseCard.vue';
 import BaseButton from '../components/BaseButton.vue';
 import BaseInput from '../components/BaseInput.vue';
-import api from '../api';
 import { useNoticeStore } from '../stores/notice';
 import { useToastStore } from '../stores/toast';
 import { ArrowLeft, Save, Loader2, ArrowUpToLine } from 'lucide-vue-next';

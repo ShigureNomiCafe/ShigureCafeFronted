@@ -104,7 +104,7 @@ export const useAdminAuditStore = defineStore('adminAudit', {
       const toastStore = useToastStore();
       this.loading = true;
 
-      const minDelay = 1000;
+      const minDelay = 500;
 
       this.fetchPromises[cacheKey] = (async () => {
         try {

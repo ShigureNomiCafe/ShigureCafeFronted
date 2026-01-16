@@ -4,7 +4,8 @@ export const getErrorMessage = (code: string, metadata?: any): string => {
     const { t, te } = i18n.global;
 
     if (code === 'RATE_LIMIT_EXCEEDED' && metadata?.retryAfter) {
-        return t('errors.RATE_LIMIT_EXCEEDED_RETRY', { retryAfter: metadata.retryAfter });
+        const seconds = Math.ceil(metadata.retryAfter / 1000);
+        return t('errors.RATE_LIMIT_EXCEEDED_RETRY', { retryAfter: seconds });
     }
     if (code === 'NICKNAME_TOO_LONG' && metadata?.maxLength) {
         return t('errors.NICKNAME_TOO_LONG_LIMIT', { maxLength: metadata.maxLength });

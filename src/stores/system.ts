@@ -54,7 +54,7 @@ export const useSystemStore = defineStore('system', {
         return this.fetchPromise;
       }
 
-      if (Date.now() - this.lastFetched < 1000) {
+      if (Date.now() - this.lastFetched < 500) {
         return this.updates;
       }
 
