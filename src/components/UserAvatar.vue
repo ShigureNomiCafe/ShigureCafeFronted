@@ -15,7 +15,7 @@
 
 <script setup lang="ts">
 import { computed, ref, watch, onUnmounted } from 'vue';
-import { getCachedAvatar, cacheAvatar } from '../utils/avatarCache';
+import { getAvatar } from '../utils/avatarCache';
 
 const props = withDefaults(defineProps<{
   name?: string;
@@ -39,41 +39,17 @@ const loadAvatar = async () => {
     return;
   }
 
-  // If it's already a special URL (data or blob), just use it
-  if (targetSrc.startsWith('data:') || targetSrc.startsWith('blob:')) {
-    displaySrc.value = targetSrc;
-    return;
-  }
-
-  // Try to get from cache
-  const cachedUrl = await getCachedAvatar(targetSrc);
-  
-  // Check if unmounted or src changed while we were checking the cache
-  if (isUnmounted || props.src !== targetSrc) {
-    return;
-  }
-
-  if (cachedUrl) {
-    displaySrc.value = cachedUrl;
-    return;
-  }
-
-  // Not in cache, fetch and store
   try {
-    const response = await fetch(targetSrc);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const blob = await response.blob();
+    const avatarUrl = await getAvatar(targetSrc);
     
-    // Only proceed if the src hasn't changed while we were fetching
+    // Check if unmounted or src changed while we were fetching
     if (!isUnmounted && props.src === targetSrc) {
-      const newUrl = await cacheAvatar(targetSrc, blob);
-      displaySrc.value = newUrl;
+      displaySrc.value = avatarUrl || (targetSrc.startsWith('http') ? targetSrc : undefined);
     }
   } catch (e) {
-    console.error('Failed to load/cache avatar:', e);
-    // Fallback to original URL if fetch fails
+    console.error('Failed to load avatar:', e);
     if (!isUnmounted && props.src === targetSrc) {
-      displaySrc.value = targetSrc;
+      displaySrc.value = targetSrc.startsWith('http') ? targetSrc : undefined;
     }
   }
 };

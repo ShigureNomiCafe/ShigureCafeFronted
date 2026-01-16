@@ -3,7 +3,7 @@
     @click="$emit('click')" 
     hoverable 
     :body-class="compact ? 'p-6' : 'p-6'"
-    :border="notice.pinned ? 'border-orange-200 bg-orange-50/30 ring-1 ring-orange-100' : 'border-gray-100'"
+    :border="notice.pinned ? 'border-2 border-orange-300 bg-orange-50/30 ring-2 ring-orange-100/50' : 'border-gray-100'"
     class="h-full"
   >
     <div class="flex items-start" :class="compact ? 'space-x-4' : 'space-x-6'">
