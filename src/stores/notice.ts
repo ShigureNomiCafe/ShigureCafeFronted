@@ -157,6 +157,32 @@ export const useNoticeStore = defineStore('notice', {
         throw error;
       }
     },
+    async createNotice(noticeData: any) {
+      const toastStore = useToastStore();
+      try {
+        const data = await api.post<Notice>('/notices', noticeData);
+        // We don't necessarily need to add to cache here as it might disrupt pagination, 
+        // but clearing cache or at least marking it as dirty might be good.
+        // For now, let's just clear notices cache to force a refresh on next list view.
+        this.notices = {};
+        this.saveToLocalStorage();
+        return data;
+      } catch (error: any) {
+        toastStore.error(t('notices.messages.create-failed'), error.message);
+        throw error;
+      }
+    },
+    async updateNotice(id: number, noticeData: any) {
+      const toastStore = useToastStore();
+      try {
+        const data = await api.put<Notice>(`/notices/${id}`, noticeData);
+        this.updateNoticeInCache(data);
+        return data;
+      } catch (error: any) {
+        toastStore.error(t('notices.messages.update-failed'), error.message);
+        throw error;
+      }
+    },
     async fetchReactions(id: number) {
       try {
         const data = await api.get<ReactionCount[]>(`/notices/${id}/reactions`);

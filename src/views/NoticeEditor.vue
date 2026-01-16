@@ -147,10 +147,10 @@ const saveNotice = async () => {
   saving.value = true;
   try {
     if (isEdit.value) {
-      await api.put(`/notices/${id.value}`, form.value);
+      await noticeStore.updateNotice(Number(id.value), form.value);
       toast.success(t('notices.editor.messages.update-success'));
     } else {
-      await api.post('/notices', form.value);
+      await noticeStore.createNotice(form.value);
       toast.success(t('notices.editor.messages.create-success'));
     }
 

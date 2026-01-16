@@ -156,7 +156,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { onMounted, onUnmounted, ref, computed, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '../stores/auth';
@@ -241,19 +241,21 @@ const handleDelete = async () => {
 
 const fetchNotice = async () => {
   const id = Number(route.params.id);
-  // Try to get from store first
+  if (isNaN(id)) return;
+
+  // Try to get from store first for immediate display
   const cached = noticeStore.getNoticeById(id);
   if (cached) {
     notice.value = cached;
     loading.value = false;
+  } else {
+    loading.value = true;
   }
 
   try {
-    // If not cached or if we want to refresh content anyway
-    if (!cached) {
-      const data = await noticeStore.fetchNoticeById(id);
-      notice.value = data;
-    }
+    // Always fetch from server to ensure latest content
+    const data = await noticeStore.fetchNoticeById(id);
+    notice.value = data;
     // Fetch reactions separately
     await noticeStore.fetchReactions(id);
   } catch (error) {
@@ -262,6 +264,12 @@ const fetchNotice = async () => {
     loading.value = false;
   }
 };
+
+watch(() => route.params.id, (newId) => {
+  if (newId && route.name === 'NoticeDetail') {
+    fetchNotice();
+  }
+});
 
 onMounted(async () => {
   fetchNotice();
