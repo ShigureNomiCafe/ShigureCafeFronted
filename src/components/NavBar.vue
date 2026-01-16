@@ -88,7 +88,7 @@
                 class="flex items-center max-w-xs bg-white rounded-full focus:outline-none transition-all duration-200 p-0.5 hover:bg-gray-50"
                 id="user-menu-button" aria-expanded="false" aria-haspopup="true">
                 <span class="sr-only">{{ t('nav.open-user-menu') }}</span>
-                <UserAvatar :name="auth.user.nickname || auth.user.username" size="md" />
+                <UserAvatar :name="auth.user.nickname || auth.user.username" :src="auth.user.avatarUrl" size="md" />
               </button>
             </div>
 
@@ -147,7 +147,7 @@
       leave-to-class="transform -translate-y-2 opacity-0">
       <div v-if="isOpen" class="sm:hidden absolute w-full bg-white shadow-lg border-b border-gray-100" id="mobile-menu">
         <div v-if="auth.user" class="pt-4 pb-3 border-b border-gray-200 px-4 flex items-center bg-gray-50/50">
-          <UserAvatar :name="auth.user.nickname || auth.user.username" size="lg" />
+          <UserAvatar :name="auth.user.nickname || auth.user.username" :src="auth.user.avatarUrl" size="lg" />
           <div class="ml-3">
             <div class="text-base font-medium text-gray-800">{{ auth.user.nickname || auth.user.username }}</div>
             <div class="text-sm font-medium text-gray-500">{{ auth.user.email }}</div>

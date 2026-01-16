@@ -61,7 +61,7 @@
                             class="hover:bg-gray-50/80 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap">
                               <div class="flex items-center">
-                                <UserAvatar :name="audit.nickname || audit.username" size="sm" class="mr-3" />
+                                <UserAvatar :name="audit.nickname || audit.username" :src="audit.avatarUrl" size="sm" class="mr-3" />
                                 <div>
                                   <div class="text-sm font-medium text-gray-900"
                                     :title="audit.nickname || audit.username">{{ truncateText(audit.nickname ||
@@ -200,6 +200,7 @@ interface Audit {
   nickname: string;
   email: string;
   status: string;
+  avatarUrl?: string;
   auditCode: string;
   isExpired: boolean;
 }

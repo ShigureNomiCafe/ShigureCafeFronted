@@ -26,6 +26,6 @@ export default defineConfig({
         changeOrigin: true,
       }
     },
-    allowedHosts:['dev.shigure-nomi.shop']
+    allowedHosts:['dev.shigure-nomi.shop','test1.shigure-nomi.shop']
   }
 })

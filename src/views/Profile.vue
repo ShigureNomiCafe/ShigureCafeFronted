@@ -16,7 +16,14 @@
             <BaseCard :title="t('profile.basic-info.title')" :subtitle="t('profile.basic-info.subtitle')">
               <div
                 class="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-6 mb-8 pb-8 border-b border-gray-100">
-                <UserAvatar :name="auth.user?.nickname || auth.user?.username" size="2xl" />
+                <div class="relative group">
+                  <UserAvatar :name="auth.user?.nickname || auth.user?.username" :src="auth.user?.avatarUrl" size="2xl" />
+                  <div @click="triggerAvatarUpload"
+                    class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 rounded-full opacity-0 group-hover:opacity-100 cursor-pointer transition-opacity duration-200">
+                    <Camera class="h-8 w-8 text-white" />
+                  </div>
+                  <input type="file" ref="avatarInput" class="hidden" accept="image/*" @change="handleAvatarChange" />
+                </div>
                 <div class="text-center sm:text-left">
                   <h2 class="text-2xl font-bold text-gray-900">{{ auth.user?.nickname || auth.user?.username }}</h2>
                   <p class="text-gray-500">{{ auth.user?.email }}</p>
@@ -129,13 +136,56 @@ import UserAvatar from '../components/UserAvatar.vue';
 import RoleBadge from '../components/RoleBadge.vue';
 import StatusBadge from '../components/StatusBadge.vue';
 import api from '../api';
-import { RotateCw } from 'lucide-vue-next';
+import axios from 'axios';
+import { RotateCw, Camera } from 'lucide-vue-next';
 
 const { t } = useI18n();
 const auth = useAuthStore();
 const toastStore = useToastStore();
 const bindLoading = ref(false);
 const refreshLoading = ref(false);
+
+const avatarInput = ref<HTMLInputElement | null>(null);
+const triggerAvatarUpload = () => {
+  avatarInput.value?.click();
+};
+
+const handleAvatarChange = async (event: Event) => {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file || !auth.user?.username) return;
+
+  if (file.size > 2 * 1024 * 1024) {
+    toastStore.error(t('profile.messages.avatar-too-large'), t('profile.messages.avatar-too-large-detail'));
+    return;
+  }
+
+  try {
+    // 1. Get presigned URL
+    const { uploadUrl, publicUrl } = await api.get<{ uploadUrl: string, publicUrl: string }>(
+      `/users/${auth.user.username}/avatar/presigned-url`,
+      { params: { contentType: file.type } }
+    );
+
+    // 2. Upload directly to S3/MinIO
+    // We use a clean axios instance to avoid sending ShigureCafe's Auth headers to S3
+    await axios.put(uploadUrl, file, {
+      headers: { 'Content-Type': file.type }
+    });
+
+    // 3. Notify backend to update user record
+    await api.put(`/users/${auth.user.username}/avatar`, { avatarUrl: publicUrl });
+
+    toastStore.success(t('profile.messages.avatar-update-success'), t('profile.messages.avatar-update-detail'));
+    await auth.fetchCurrentUser(true);
+  } catch (e: any) {
+    toastStore.error(t('profile.messages.avatar-update-failed'), e.message || t('profile.messages.system-error'));
+  } finally {
+    if (avatarInput.value) {
+      avatarInput.value.value = '';
+    }
+  }
+};
 
 const handleBindMinecraft = async () => {
   bindLoading.value = true;

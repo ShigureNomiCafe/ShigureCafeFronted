@@ -15,6 +15,7 @@ export interface User {
   twoFactorEnabled: boolean;
   email2faEnabled: boolean;
   totpEnabled: boolean;
+  avatarUrl?: string;
   minecraftUuid?: string;
   minecraftUsername?: string;
 }

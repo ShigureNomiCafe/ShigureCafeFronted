@@ -1,14 +1,15 @@
 <template>
   <div 
     :class="[
-      avatarColor, 
+      !src ? avatarColor : 'bg-gray-100', 
       sizeClass,
-      'rounded-full flex items-center justify-center text-white font-bold shadow-sm border-2 border-white ring-2 ring-gray-50 flex-shrink-0 transition-transform duration-200 hover:scale-105',
+      'rounded-full flex items-center justify-center text-white font-bold shadow-sm border-2 border-white ring-2 ring-gray-50 flex-shrink-0 transition-transform duration-200 hover:scale-105 overflow-hidden',
       customClass
     ]"
     :title="name"
   >
-    {{ initial }}
+    <img v-if="src" :src="src" class="h-full w-full object-cover" :alt="name" />
+    <span v-else>{{ initial }}</span>
   </div>
 </template>
 
@@ -17,6 +18,7 @@ import { computed } from 'vue';
 
 const props = withDefaults(defineProps<{
   name?: string;
+  src?: string;
   size?: 'xs' | 'sm' | 'md' | 'lg' | 'xl' | '2xl';
   customClass?: string;
 }>(), {

@@ -126,7 +126,7 @@
 
                     <div class="mt-10 flex items-center justify-between border-t border-gray-100 pt-6">
                       <div class="flex items-center text-sm text-gray-500">
-                        <UserAvatar :name="notice.authorNickname" size="sm" custom-class="mr-3" />
+                        <UserAvatar :name="notice.authorNickname" :src="notice.authorAvatarUrl" size="sm" custom-class="mr-3" />
                         <div>
                           <span class="font-bold text-gray-900 block">{{ notice.authorNickname }}</span>
                           <span v-if="notice.updatedAt !== notice.createdAt" class="text-xs text-gray-400 italic">

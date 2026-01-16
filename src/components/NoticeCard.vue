@@ -58,6 +58,7 @@
 
         <div :class="['flex items-center justify-between border-t border-gray-50', compact ? 'mt-4 pt-3' : 'mt-6 pt-4']">
           <div class="flex items-center text-gray-500" :class="compact ? 'text-xs' : 'text-sm'">
+            <UserAvatar :name="notice.authorNickname" :src="notice.authorAvatarUrl" :size="compact ? 'xs' : 'sm'" class="mr-2" />
             <span class="font-medium text-gray-900 mr-2">{{ notice.authorNickname }}</span>
             <span v-if="notice.updatedAt !== notice.createdAt" class="italic">
               {{ t('notices.edited', { time: formatDateTime(notice.updatedAt) }) }}
@@ -95,6 +96,7 @@ import { computed } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Megaphone, Bell, Edit2, Trash2, ChevronRight } from 'lucide-vue-next';
 import BaseCard from './BaseCard.vue';
+import UserAvatar from './UserAvatar.vue';
 import { formatDateTime } from '../utils/formatters';
 import { renderMarkdown } from '../utils/markdown';
 import { useNoticeStore, type Notice } from '../stores/notice';

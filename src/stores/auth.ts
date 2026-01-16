@@ -13,6 +13,7 @@ interface User {
   totpEnabled: boolean;
   minecraftUuid: string;
   minecraftUsername: string;
+  avatarUrl?: string;
 }
 
 interface JwtPayload {

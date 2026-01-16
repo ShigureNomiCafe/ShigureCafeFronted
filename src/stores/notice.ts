@@ -18,6 +18,7 @@ export interface Notice {
   content: string;
   pinned: boolean;
   authorNickname: string;
+  authorAvatarUrl?: string;
   createdAt: number;
   updatedAt: number;
 }

@@ -67,7 +67,7 @@
                             class="hover:bg-gray-50/80 transition-colors duration-150">
                             <td class="px-6 py-4 whitespace-nowrap">
                               <div class="flex items-center">
-                                <UserAvatar :name="user.nickname || user.username" />
+                                <UserAvatar :name="user.nickname || user.username" :src="user.avatarUrl" />
                                 <div class="ml-3">
                                   <div class="text-sm font-medium text-gray-900"
                                     :title="user.nickname || t('admin-users.no-nickname')">{{ truncateText(user.nickname
@@ -335,6 +335,7 @@ interface User {
   twoFactorEnabled: boolean;
   email2faEnabled: boolean;
   totpEnabled: boolean;
+  avatarUrl?: string;
   minecraftUuid?: string;
   minecraftUsername?: string;
 }

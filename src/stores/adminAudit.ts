@@ -11,6 +11,7 @@ export interface Audit {
   nickname: string;
   email: string;
   status: string;
+  avatarUrl?: string;
   auditCode: string;
   isExpired: boolean;
 }
