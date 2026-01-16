@@ -334,6 +334,7 @@
       "rebind": "Re-bind",
       "bind-now": "Bind Now"
     },
+    "avatar-crop-title": "Crop Avatar",
     "nickname-modal": {
       "title": "Update Nickname",
       "label": "New Nickname",

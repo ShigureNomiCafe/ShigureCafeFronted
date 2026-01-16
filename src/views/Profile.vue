@@ -119,6 +119,16 @@
         <BaseButton variant="outline" @click="showNicknameModal = false" :label="t('common.cancel')" />
       </template>
     </Modal>
+
+    <!-- Avatar Crop Modal -->
+    <Modal :show="showCropModal" :title="t('profile.avatar-crop-title')" @close="showCropModal = false">
+      <ImageCropper v-if="cropImgSrc" ref="cropperRef" :img-src="cropImgSrc" />
+      <template #footer>
+        <BaseButton @click="handleCropSave" :loading="uploadLoading" :label="t('common.confirm')"
+          :loading-text="t('common.processing')" />
+        <BaseButton variant="outline" @click="showCropModal = false" :label="t('common.cancel')" />
+      </template>
+    </Modal>
   </div>
 </template>
 
@@ -135,6 +145,7 @@ import Modal from '../components/Modal.vue';
 import UserAvatar from '../components/UserAvatar.vue';
 import RoleBadge from '../components/RoleBadge.vue';
 import StatusBadge from '../components/StatusBadge.vue';
+import ImageCropper from '../components/ImageCropper.vue';
 import api from '../api';
 import axios from 'axios';
 import { RotateCw, Camera } from 'lucide-vue-next';
@@ -146,6 +157,11 @@ const bindLoading = ref(false);
 const refreshLoading = ref(false);
 
 const avatarInput = ref<HTMLInputElement | null>(null);
+const showCropModal = ref(false);
+const cropImgSrc = ref('');
+const cropperRef = ref<InstanceType<typeof ImageCropper> | null>(null);
+const uploadLoading = ref(false);
+
 const triggerAvatarUpload = () => {
   avatarInput.value?.click();
 };
@@ -153,24 +169,41 @@ const triggerAvatarUpload = () => {
 const handleAvatarChange = async (event: Event) => {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
-  if (!file || !auth.user?.username) return;
+  if (!file) return;
 
   if (file.size > 2 * 1024 * 1024) {
     toastStore.error(t('profile.messages.avatar-too-large'), t('profile.messages.avatar-too-large-detail'));
     return;
   }
 
+  // Read file as Data URL for cropping
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    if (typeof e.target?.result === 'string') {
+      cropImgSrc.value = e.target.result;
+      showCropModal.value = true;
+    }
+  };
+  reader.readAsDataURL(file);
+};
+
+const handleCropSave = async () => {
+  if (!cropperRef.value || !auth.user?.username) return;
+  
+  uploadLoading.value = true;
   try {
+    const blob = await cropperRef.value.getCropBlob();
+    if (!blob) throw new Error('Failed to create blob');
+
     // 1. Get presigned URL
     const { uploadUrl, publicUrl } = await api.get<{ uploadUrl: string, publicUrl: string }>(
       `/users/${auth.user.username}/avatar/presigned-url`,
-      { params: { contentType: file.type } }
+      { params: { contentType: blob.type } }
     );
 
     // 2. Upload directly to S3/MinIO
-    // We use a clean axios instance to avoid sending ShigureCafe's Auth headers to S3
-    await axios.put(uploadUrl, file, {
-      headers: { 'Content-Type': file.type }
+    await axios.put(uploadUrl, blob, {
+      headers: { 'Content-Type': blob.type }
     });
 
     // 3. Notify backend to update user record
@@ -178,9 +211,11 @@ const handleAvatarChange = async (event: Event) => {
 
     toastStore.success(t('profile.messages.avatar-update-success'), t('profile.messages.avatar-update-detail'));
     await auth.fetchCurrentUser(true);
+    showCropModal.value = false;
   } catch (e: any) {
     toastStore.error(t('profile.messages.avatar-update-failed'), e.message || t('profile.messages.system-error'));
   } finally {
+    uploadLoading.value = false;
     if (avatarInput.value) {
       avatarInput.value.value = '';
     }
