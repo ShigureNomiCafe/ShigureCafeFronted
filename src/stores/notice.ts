@@ -89,16 +89,22 @@ export const useNoticeStore = defineStore('notice', {
       const pageNum = page;
       const sizeNum = size;
 
-      // 1. If we have cache and it's not a forced refresh, switch immediately
-      if (!force && this.pages[pageNum] && !this.isCacheExpired()) {
+      // 1. If we have cache, show it immediately (even if expired) for smooth UX
+      if (!force && this.pages[pageNum]) {
         this.currentPage = pageNum;
 
-        // Background check for updates
-        systemStore.fetchUpdates().then(updates => {
-          if (updates.noticeLastUpdated > this.globalLastUpdated) {
-            this.performFetchNotices(pageNum, sizeNum);
-          }
-        }).catch(() => { });
+        // 2. If we already know it's expired
+        if (this.isCacheExpired()) {
+          await this.performFetchNotices(pageNum, sizeNum);
+        } else {
+          // 3. Background check for updates
+          // systemStore.fetchUpdates has a 500ms cache to prevent redundant calls on navigation
+          systemStore.fetchUpdates().then(updates => {
+            if (updates.noticeLastUpdated > this.globalLastUpdated) {
+              this.performFetchNotices(pageNum, sizeNum);
+            }
+          }).catch(() => { });
+        }
 
         return;
       }
@@ -126,9 +132,11 @@ export const useNoticeStore = defineStore('notice', {
             new Promise(resolve => setTimeout(resolve, minDelay))
           ]);
 
-          if (force || systemStore.updates.noticeLastUpdated > this.globalLastUpdated) {
-            this.pages = {};
-          }
+          // Atomic update to avoid UI flicker
+          const isGlobalExpired = systemStore.updates.noticeLastUpdated > this.globalLastUpdated;
+          const newPages = (force || isGlobalExpired)
+            ? {} as Record<number, number[]>
+            : { ...this.pages };
 
           // Update records map
           response.content.forEach(notice => {
@@ -136,7 +144,8 @@ export const useNoticeStore = defineStore('notice', {
           });
 
           // Update page mapping
-          this.pages[pageNum] = response.content.map(n => n.id);
+          newPages[pageNum] = response.content.map(n => n.id);
+          this.pages = newPages;
           
           this.totalPages = response.totalPages;
           this.totalElements = response.totalElements;
@@ -192,8 +201,10 @@ export const useNoticeStore = defineStore('notice', {
       try {
         const data = await api.post<Notice>('/notices', noticeData);
         this.records[data.id] = data;
-        // Invalidate pages to force fresh fetch of list
-        this.pages = {};
+        
+        // No manual refresh here. The next navigation to the list page
+        // will trigger the background refresh logic in fetchNotices.
+        
         this.saveToLocalStorage();
         return data;
       } catch (error: any) {
@@ -207,6 +218,7 @@ export const useNoticeStore = defineStore('notice', {
       try {
         const data = await api.put<Notice>(`/notices/${id}`, noticeData);
         this.records[id] = data;
+        
         this.saveToLocalStorage();
         return data;
       } catch (error: any) {
@@ -221,7 +233,7 @@ export const useNoticeStore = defineStore('notice', {
         await api.delete(`/notices/${id}`);
         delete this.records[id];
         delete this.reactions[id];
-        this.pages = {}; // Invalidate pagination
+        
         this.saveToLocalStorage();
         toastStore.success(t('notices.messages.delete-success'));
       } catch (error: any) {

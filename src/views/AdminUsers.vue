@@ -336,6 +336,7 @@ const showBanModal = ref(false);
 const showPardonModal = ref(false);
 const showReset2FAModal = ref(false);
 const showRoleDropdown = ref(false);
+const processing = ref(false);
 const selectedUser = ref<User | null>(null);
 const toast = useToastStore();
 const auth = useAuthStore();

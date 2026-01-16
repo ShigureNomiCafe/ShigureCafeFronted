@@ -122,7 +122,7 @@
           </div>
         </div>
         <template #footer>
-          <BaseButton variant="danger" @click="handleDelete" :label="t('notices.delete-modal.confirm')" />
+          <BaseButton variant="danger" @click="handleDelete" :loading="deleting" :label="t('notices.delete-modal.confirm')" />
           <BaseButton variant="outline" @click="showDeleteModal = false" :label="t('common.cancel')" />
         </template>
       </Modal>
@@ -157,6 +157,7 @@ const searchQuery = ref('');
 const isSearchExpanded = ref(false);
 const searchInput = ref<HTMLInputElement | null>(null);
 const showDeleteModal = ref(false);
+const deleting = ref(false);
 const selectedNotice = ref<Notice | null>(null);
 
 watch(isSearchExpanded, (val) => {
@@ -212,6 +213,7 @@ const confirmDelete = (notice: Notice) => {
 
 const handleDelete = async () => {
   if (!selectedNotice.value) return;
+  deleting.value = true;
   try {
     await noticeStore.deleteNotice(selectedNotice.value.id);
     showDeleteModal.value = false;
@@ -224,6 +226,8 @@ const handleDelete = async () => {
     await handlePageChange(targetPage, true);
   } catch (error: any) {
     // Handled by store
+  } finally {
+    deleting.value = false;
   }
 };
 
