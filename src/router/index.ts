@@ -10,6 +10,7 @@ const AllNotices = () => import('../views/AllNotices.vue');
 const NoticeDetail = () => import('../views/NoticeDetail.vue');
 const Profile = () => import('../views/Profile.vue');
 const Security = () => import('../views/Security.vue');
+const Chat = () => import('../views/Chat.vue');
 const AdminUsers = () => import('../views/AdminUsers.vue');
 const AdminAudits = () => import('../views/AdminAudits.vue');
 const NoticeEditor = () => import('../views/NoticeEditor.vue');
@@ -59,6 +60,12 @@ const router = createRouter({
       path: '/notices/:id',
       name: 'NoticeDetail',
       component: NoticeDetail,
+      meta: { requiresAuth: true }
+    },
+    {
+      path: '/chat',
+      name: 'Chat',
+      component: Chat,
       meta: { requiresAuth: true }
     },
     {

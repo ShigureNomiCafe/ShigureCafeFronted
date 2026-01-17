@@ -30,6 +30,15 @@
               ]">
               {{ t('nav.notices') }}
             </router-link>
+            <router-link to="/chat"
+              class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-200"
+              :class="[
+                $route.path === '/chat'
+                  ? 'border-blue-500 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 hover:-translate-y-0.5'
+              ]">
+              {{ t('nav.chat') }}
+            </router-link>
             <router-link v-if="auth.user?.role === 'ADMIN'" to="/admin/users"
               class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-200"
               :class="[
@@ -172,6 +181,15 @@
                 : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
             ]">
             {{ t('nav.notices') }}
+          </router-link>
+          <router-link to="/chat" @click="isOpen = false"
+            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-150 ease-in-out"
+            :class="[
+              $route.path === '/chat'
+                ? 'bg-blue-50 border-blue-500 text-blue-700'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+            ]">
+            {{ t('nav.chat') }}
           </router-link>
           <router-link v-if="auth.user?.role === 'ADMIN'" to="/admin/users" @click="isOpen = false"
             class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-150 ease-in-out"
