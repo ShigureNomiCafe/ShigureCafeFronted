@@ -24,6 +24,10 @@ export default defineConfig({
       '/api': {
         target: 'http://localhost:8080',
         changeOrigin: true,
+      },
+      '/ws': {
+        target: 'http://localhost:8080',
+        ws: true,
       }
     },
     allowedHosts:['dev.shigure-nomi.shop','test1.shigure-nomi.shop']

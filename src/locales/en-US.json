@@ -215,7 +215,7 @@
     "logo": "Shigure Cafe",
     "home": "Home",
     "notices": "Notices",
-    "chat": "Game Chat",
+    "chat": "Chat",
     "user-management": "User Management",
     "audit-management": "Audit Management",
     "chinese": "简体中文",
@@ -226,6 +226,19 @@
     "security": "Security",
     "logout": "Logout",
     "open-main-menu": "Open main menu"
+  },
+  "chat": {
+    "game-relay": "In-Game Chat",
+    "connected": "Connected to server",
+    "reconnecting": "Reconnecting...",
+    "disconnected": "Disconnected",
+    "online": "Online",
+    "placeholder": "Send message to game...",
+    "connecting-tip": "Connecting...",
+    "tip": "Messages will be synced to Minecraft server chat in real-time",
+    "error-no-token": "Authentication info not found, please login again",
+    "connected-msg": "Connected successfully, syncing in-game messages...",
+    "disconnected-msg": "Disconnected, attempting to reconnect..."
   },
   "auth": {
     "login": {

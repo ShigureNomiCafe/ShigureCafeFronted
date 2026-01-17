@@ -215,7 +215,7 @@
     "logo": "猫咖",
     "home": "首页",
     "notices": "公告",
-    "chat": "游戏聊天",
+    "chat": "聊天",
     "user-management": "用户管理",
     "audit-management": "审核管理",
     "chinese": "简体中文",
@@ -226,6 +226,19 @@
     "security": "安全设置",
     "logout": "退出登录",
     "open-main-menu": "打开主菜单"
+  },
+  "chat": {
+    "game-relay": "游戏内聊天",
+    "connected": "已连接至服务器",
+    "reconnecting": "正在重新连接...",
+    "disconnected": "未连接",
+    "online": "在线",
+    "placeholder": "发送消息到游戏内...",
+    "connecting-tip": "正在连接中...",
+    "tip": "消息将实时同步至 Minecraft 服务器聊天栏",
+    "error-no-token": "未找到认证信息，请重新登录",
+    "connected-msg": "连接成功，正在同步游戏内消息...",
+    "disconnected-msg": "连接已断开，正在尝试重连..."
   },
   "auth": {
     "login": {
