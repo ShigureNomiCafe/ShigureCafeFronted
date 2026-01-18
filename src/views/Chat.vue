@@ -25,17 +25,39 @@
         </div>
 
         <!-- Messages Area -->
-        <div ref="messagesAreaRef" class="flex-1 overflow-y-auto p-6 space-y-4 bg-gray-50/30">
-          <div v-for="(msg, idx) in messages" :key="idx" class="flex flex-col" :class="msg.isMe ? 'items-end' : 'items-start'">
-            <div class="flex items-center space-x-2 mb-1" :class="msg.isMe ? 'flex-row-reverse space-x-reverse' : 'flex-row'">
-              <span class="text-xs font-bold" :class="msg.isMe ? 'text-blue-600' : 'text-gray-700'">{{ msg.sender }}</span>
-              <span class="text-[10px] text-gray-400">{{ msg.time }}</span>
+        <div ref="messagesAreaRef" class="flex-1 overflow-y-auto p-6 bg-gray-50/30">
+          <div v-for="(group, gIdx) in groupedMessages" :key="gIdx" class="mb-6 relative">
+            <!-- Sticky Sender Header -->
+            <div 
+              class="sticky top-0 z-10 py-2 mb-2 flex items-center backdrop-blur-sm bg-gray-50/60" 
+              :class="group.isMe ? 'justify-end' : 'justify-start'"
+            >
+              <span class="text-xs font-bold px-2 py-0.5 rounded-lg bg-white/50 shadow-sm border border-gray-100" 
+                :class="group.isMe ? 'text-blue-600' : 'text-gray-700'">
+                {{ group.sender }}
+              </span>
             </div>
-            <div class="px-4 py-2 rounded-2xl text-sm shadow-sm max-w-[85%] break-words"
-              :class="msg.isMe ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-gray-800 border border-gray-100 rounded-tl-none'">
-              <span v-if="msg.type === 'game'" class="inline-block px-1.5 py-0.5 rounded text-[10px] bg-indigo-100 text-indigo-700 font-bold mr-1.5 align-middle">GAME</span>
-              <span v-if="msg.type === 'system'" class="italic text-gray-500">{{ msg.content }}</span>
-              <span v-else>{{ msg.content }}</span>
+
+            <!-- Messages in Group -->
+            <div class="flex flex-col space-y-1" :class="group.isMe ? 'items-end' : 'items-start'">
+              <div v-for="(msg, mIdx) in group.messages" :key="mIdx" 
+                class="px-4 py-2 rounded-2xl text-sm shadow-sm max-w-[85%] break-words relative"
+                :class="[
+                  group.isMe ? 'bg-blue-600 text-white' : 'bg-white text-gray-800 border border-gray-100',
+                  group.isMe 
+                    ? (mIdx === 0 ? 'rounded-tr-none' : '') 
+                    : (mIdx === 0 ? 'rounded-tl-none' : '')
+                ]"
+              >
+                <span v-if="msg.type === 'system'" class="italic text-gray-500">{{ msg.content }}</span>
+                <span v-else>{{ msg.content }}</span>
+                <!-- Spacer for the timestamp to prevent overlap, keeping it inline with text -->
+                <span class="inline-block w-8"></span>
+                
+                <span class="absolute right-2.5 bottom-1.5 text-[9px] leading-none opacity-70" :class="group.isMe ? 'text-blue-100' : 'text-gray-400'">
+                  {{ msg.time }}
+                </span>
+              </div>
             </div>
           </div>
         </div>
@@ -73,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, nextTick } from 'vue';
+import { ref, computed, onMounted, onUnmounted, nextTick } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { Gamepad2, Users, Send } from 'lucide-vue-next';
 import NavBar from '../components/NavBar.vue';
@@ -83,8 +105,17 @@ interface Message {
   sender: string;
   content: string;
   time: string;
+  timestamp: number;
   isMe: boolean;
-  type: 'system' | 'game' | 'web';
+  type: 'system' | 'chat';
+}
+
+interface MessageGroup {
+  sender: string;
+  isMe: boolean;
+  time: string;
+  timestamp: number;
+  messages: Message[];
 }
 
 const { t } = useI18n();
@@ -96,6 +127,34 @@ const isConnected = ref(false);
 const isReconnecting = ref(false);
 const onlineCount = ref(0);
 const messages = ref<Message[]>([]);
+
+const groupedMessages = computed(() => {
+  const groups: MessageGroup[] = [];
+  messages.value.forEach((msg, idx) => {
+    const prevGroup = groups[groups.length - 1];
+    
+    // Logic to determine if we should start a new group
+    const shouldStartNewGroup = 
+      !prevGroup || 
+      prevGroup.sender !== msg.sender || 
+      msg.type === 'system' ||
+      prevGroup.messages[0].type === 'system' ||
+      (msg.timestamp - prevGroup.messages[prevGroup.messages.length - 1].timestamp) > 5 * 60 * 1000;
+
+    if (shouldStartNewGroup) {
+      groups.push({
+        sender: msg.sender,
+        isMe: msg.isMe,
+        time: msg.time,
+        timestamp: msg.timestamp,
+        messages: [msg]
+      });
+    } else {
+      prevGroup.messages.push(msg);
+    }
+  });
+  return groups;
+});
 
 let socket: WebSocket | null = null;
 let reconnectTimer: number | null = null;
@@ -141,8 +200,9 @@ const connectWebSocket = () => {
         sender: data.name,
         content: data.message,
         time: formatTime(data.timestamp),
+        timestamp: data.timestamp,
         isMe: data.name === (authStore.user?.minecraftUsername || authStore.user?.username),
-        type: 'game' // Most messages from WS are game/server messages
+        type: 'chat' // Standard chat message
       });
       scrollToBottom();
     } catch (e) {
@@ -223,8 +283,9 @@ const handleSend = () => {
     sender: chatMessage.name,
     content: chatMessage.message,
     time: formatTime(chatMessage.timestamp),
+    timestamp: chatMessage.timestamp,
     isMe: true,
-    type: 'web'
+    type: 'chat'
   });
 
   newMessage.value = '';
