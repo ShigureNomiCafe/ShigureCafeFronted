@@ -6,7 +6,7 @@
       <header>
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div class="flex items-center space-x-4">
-            <button @click="$router.push('/notices')" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600">
+            <button @click="goBack" class="p-2 rounded-full hover:bg-gray-200 transition-colors text-gray-600">
               <ArrowLeft class="h-6 w-6" />
             </button>
             <h1 class="text-3xl font-extrabold leading-tight text-gray-900 tracking-tight animate-slide-up">
@@ -207,6 +207,14 @@ const pickerAlignment = ref<{
   horizontal: 'left' | 'right' | 'center';
 }>({ top: true, horizontal: 'left' });
 
+const goBack = () => {
+  if (window.history.state.back) {
+    router.back();
+  } else {
+    router.push('/notices');
+  }
+};
+
 const availableReactions = computed(() => systemStore.reactionTypes.map(r => r.name));
 const getEmoji = (type: string) => systemStore.reactionMap[type] || '❓';
 
@@ -336,22 +344,5 @@ onUnmounted(() => {
 .emoji-pop-leave-to {
   transform: scale(0.5);
   opacity: 0;
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  width: 4px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #e2e8f0;
-  border-radius: 10px;
-}
-
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #cbd5e1;
 }
 </style>
