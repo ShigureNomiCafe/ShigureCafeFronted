@@ -253,23 +253,3 @@ const handleSend = () => {
   scrollToBottom();
 };
 </script>
-
-<style scoped>
-/* 自定义滚动条样式 */
-::-webkit-scrollbar {
-  width: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #e5e7eb;
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #d1d5db;
-}
-</style>

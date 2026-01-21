@@ -143,9 +143,3 @@ onUnmounted(() => {
 
 defineExpose({ update: updateScrollbarMetrics });
 </script>
-
-<style scoped>
-.scrollbar-none::-webkit-scrollbar {
-  display: none;
-}
-</style>
