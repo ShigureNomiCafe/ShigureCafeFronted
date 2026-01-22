@@ -3,7 +3,7 @@
     :class="[
       !displaySrc ? avatarColor : 'bg-gray-100', 
       sizeClass,
-      'rounded-full flex items-center justify-center text-white font-bold shadow-sm border-2 border-white ring-2 ring-gray-50 flex-shrink-0 transition-transform duration-200 hover:scale-105 overflow-hidden select-none',
+      'rounded-full flex items-center justify-center text-white font-bold shadow-sm flex-shrink-0 transition-transform duration-200 hover:scale-105 overflow-hidden select-none',
       customClass
     ]"
     :title="name"
