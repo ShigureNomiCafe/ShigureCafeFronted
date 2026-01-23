@@ -274,7 +274,7 @@ const handleRefreshMinecraft = async () => {
   try {
     await api.post(`/users/${auth.user.username}/minecraft/refresh`);
     toastStore.success(t('profile.messages.refresh-success'), t('profile.messages.refresh-success-detail'));
-    await auth.fetchCurrentUser();
+    await auth.fetchCurrentUser(true);
     await loadMinecraftAvatar(true);
   } catch (e: any) {
     toastStore.error(t('profile.messages.refresh-failed'), e.message || t('profile.messages.system-error'));
@@ -300,7 +300,7 @@ const handleUpdateNickname = async () => {
     await api.put(`/users/${auth.user.username}/nickname`, nicknameForm.value);
     toastStore.success(t('profile.messages.update-nickname-success'), t('profile.messages.update-nickname-detail'));
     showNicknameModal.value = false;
-    await auth.fetchCurrentUser();
+    await auth.fetchCurrentUser(true);
   } catch (e: any) {
     toastStore.error(t('profile.messages.update-nickname-failed'), e.message || t('profile.messages.system-busy'));
   } finally {
@@ -333,8 +333,7 @@ onMounted(async () => {
       await api.post(`/users/${auth.user.username}/minecraft/bind`, { code, redirectUri });
       toastStore.success(t('profile.messages.bind-success'), t('profile.messages.bind-success-detail'));
       // Force refresh user data
-      auth.user = null;
-      await auth.fetchCurrentUser();
+      await auth.fetchCurrentUser(true);
       await loadMinecraftAvatar();
     } catch (e: any) {
       toastStore.error(t('profile.messages.bind-failed'), e.message || t('profile.messages.bind-failed-reason'));

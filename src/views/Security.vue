@@ -284,7 +284,7 @@ const handle2FAAction = async () => {
     try {
       await api.delete(`/users/${auth.user.username}/2fa/totp`);
       toastStore.success(t('security.messages.totp-disable-success'), t('security.messages.totp-disable-detail'));
-      await auth.fetchCurrentUser();
+      await auth.fetchCurrentUser(true);
     } catch (e: any) {
       toastStore.error(t('security.messages.action-failed'), e.message || t('security.messages.system-error'));
     } finally {
@@ -320,7 +320,7 @@ const handleConfirmTotp = async () => {
     });
     toastStore.success(t('security.messages.totp-enable-success'), t('security.messages.totp-enable-detail'));
     showTotpModal.value = false;
-    await auth.fetchCurrentUser();
+    await auth.fetchCurrentUser(true);
   } catch (e: any) {
     toastStore.error(t('security.messages.verify-failed'), e.message || t('security.messages.verify-failed-detail'));
   } finally {
@@ -335,7 +335,7 @@ const handleUpdateEmail = async () => {
     await api.put(`/users/${auth.user.username}/email`, newEmailForm.value);
     toastStore.success(t('security.messages.email-update-success'), t('security.messages.email-update-detail'));
     showEmailModal.value = false;
-    await auth.fetchCurrentUser(); // Refresh user data
+    await auth.fetchCurrentUser(true); // Refresh user data
   } catch (e: any) {
     toastStore.error(t('security.messages.email-update-failed'), e.message || t('security.messages.email-update-failed-detail'));
   } finally {
