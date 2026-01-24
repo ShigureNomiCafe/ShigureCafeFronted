@@ -19,8 +19,11 @@
           <label class="block text-sm font-medium text-gray-700 mb-3 ml-1">{{ t('auth.two-factor.code-label') }}</label>
           <DigitInput v-model="twoFactorCode" @complete="handleVerify2FA" />
 
-          <div v-if="useEmail" class="mt-4 flex justify-center">
-            <VerificationCodeButton :email="auth.twoFactorEmail || ''" type="2FA" class="min-w-[140px]" />
+          <div v-if="useEmail" class="space-y-4">
+            <div class="flex justify-center">
+              <VerificationCodeButton ref="verificationCodeButtonRef" :email="auth.twoFactorEmail || ''" type="2FA"
+                @click="onVerifyCodeClick" class="min-w-[140px]" />
+            </div>
           </div>
           <div v-if="auth.hasTotp && auth.hasEmail2fa" class="mt-4 flex justify-center">
             <button @click="toggleMethod" type="button"
@@ -30,6 +33,8 @@
           </div>
         </div>
       </div>
+
+
 
       <div>
         <BaseButton type="submit" :loading="loading" :disabled="twoFactorCode.length < 6"
@@ -64,8 +69,10 @@ import BaseButton from '../components/BaseButton.vue';
 import DigitInput from '../components/DigitInput.vue';
 import VerificationCodeButton from '../components/VerificationCodeButton.vue';
 
+import { useTurnstileStore } from '../stores/turnstile';
+
 const { t } = useI18n();
-const form = ref({ username: '', password: '' });
+const form = ref({ username: '', password: '', turnstileToken: '' });
 const twoFactorCode = ref('');
 
 const show2FA = ref(false);
@@ -74,6 +81,18 @@ const loading = ref(false);
 const auth = useAuthStore();
 const router = useRouter();
 const toastStore = useToastStore();
+const turnstileStore = useTurnstileStore();
+
+const verificationCodeButtonRef = ref();
+
+const onVerifyCodeClick = async () => {
+  try {
+    const token = await turnstileStore.verify('send_2fa_code');
+    verificationCodeButtonRef.value?.handleClick(token);
+  } catch (e) {
+    // User cancelled or error
+  }
+};
 
 const toggleMethod = () => {
   useEmail.value = !useEmail.value;
@@ -83,6 +102,9 @@ const toggleMethod = () => {
 const handleLogin = async () => {
   loading.value = true;
   try {
+    const token = await turnstileStore.verify('login');
+    form.value.turnstileToken = token;
+
     const result = await auth.login(form.value);
     if (result.twoFactorRequired) {
       show2FA.value = true;
@@ -96,7 +118,9 @@ const handleLogin = async () => {
       router.push('/dashboard');
     }
   } catch (e: any) {
-    toastStore.error(t('auth.login.login-failed'), e.message || t('auth.login.login-failed-detail'));
+    if (e.message !== 'User cancelled') {
+      toastStore.error(t('auth.login.login-failed'), e.message || t('auth.login.login-failed-detail'));
+    }
   } finally {
     loading.value = false;
   }

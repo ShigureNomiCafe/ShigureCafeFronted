@@ -124,9 +124,11 @@
         <BaseInput v-model="newEmailForm.newEmail" :label="$t('security.email.new-email-label')" type="email"
           :placeholder="$t('security.email.new-email-placeholder')" show-button>
           <template #button>
-            <VerificationCodeButton :email="newEmailForm.newEmail" type="UPDATE_EMAIL" class="w-32" />
+            <VerificationCodeButton ref="emailUpdateCodeButtonRef" :email="newEmailForm.newEmail" type="UPDATE_EMAIL"
+              @click="onEmailUpdateCodeClick" class="w-32" />
           </template>
         </BaseInput>
+
         <BaseInput v-model="newEmailForm.verificationCode" :label="$t('security.email.code-label')"
           :placeholder="$t('security.email.code-placeholder')" autocomplete="one-time-code" />
       </div>
@@ -145,12 +147,10 @@
             auth.user?.email }}</span>{{ $t('security.email-2fa.modal-desc').split('{email}')[1] }}
         </p>
         <DigitInput v-model="email2FAConfirmCode" />
+
         <div class="flex justify-center">
-          <button @click="sendEmail2FACode" :disabled="sending2FA || countdown2FA > 0"
-            class="text-sm font-bold text-blue-600 hover:text-blue-700 disabled:opacity-50 transition-colors">
-            {{ countdown2FA > 0 ? $t('security.email-2fa.resend-after', { count: countdown2FA }) : (sending2FA ?
-              $t('security.email-2fa.resending') : $t('security.email-2fa.resend')) }}
-          </button>
+          <VerificationCodeButton ref="email2FACodeButtonRef" :email="auth.user?.email || ''" type="2FA"
+            @click="onEmail2FACodeClick" variant="ghost" />
         </div>
       </div>
       <template #footer>
@@ -166,10 +166,9 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
-import { storeToRefs } from 'pinia';
 import { useAuthStore } from '../stores/auth';
 import { useToastStore } from '../stores/toast';
-import { useVerificationStore } from '../stores/verification';
+import { useTurnstileStore } from '../stores/turnstile';
 import NavBar from '../components/NavBar.vue';
 import QrcodeVue from 'qrcode.vue';
 import BaseCard from '../components/BaseCard.vue';
@@ -183,6 +182,7 @@ import api from '../api';
 const { t } = useI18n();
 const auth = useAuthStore();
 const toastStore = useToastStore();
+const turnstileStore = useTurnstileStore();
 
 // Password Logic
 const passwordForm = ref({
@@ -221,6 +221,16 @@ const newEmailForm = ref({ newEmail: '', verificationCode: '' });
 const emailLoading = ref(false);
 const toggleLoading = ref(false);
 const toggleEmailLoading = ref(false);
+const emailUpdateCodeButtonRef = ref();
+
+const onEmailUpdateCodeClick = async () => {
+  try {
+    const token = await turnstileStore.verify('update_email_send_code');
+    emailUpdateCodeButtonRef.value?.handleClick(token);
+  } catch (e) {
+    // User cancelled
+  }
+};
 
 // 2FA TOTP Logic
 const showTotpModal = ref(false);
@@ -231,12 +241,15 @@ const totpConfirmCode = ref('');
 // Email 2FA Activation Logic
 const showEmail2FAModal = ref(false);
 const email2FAConfirmCode = ref('');
-const verificationStore = useVerificationStore();
-const { sending: sending2FA, countdown: countdown2FA } = storeToRefs(verificationStore);
+const email2FACodeButtonRef = ref();
 
-const sendEmail2FACode = async () => {
-  if (!auth.user?.email) return;
-  await verificationStore.sendCode(auth.user.email, '2FA');
+const onEmail2FACodeClick = async () => {
+  try {
+    const token = await turnstileStore.verify('enable_email_2fa_send_code');
+    email2FACodeButtonRef.value?.handleClick(token);
+  } catch (e) {
+    // User cancelled
+  }
 };
 
 const handleToggleEmail2FA = async () => {
@@ -255,7 +268,6 @@ const handleToggleEmail2FA = async () => {
     // Enable requires verification
     email2FAConfirmCode.value = '';
     showEmail2FAModal.value = true;
-    sendEmail2FACode();
   }
 };
 

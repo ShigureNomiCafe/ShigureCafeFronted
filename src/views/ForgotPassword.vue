@@ -6,7 +6,8 @@
         <BaseInput id="email" v-model="form.email" :label="t('auth.forgot-password.email-label')" type="email"
           :placeholder="t('auth.forgot-password.email-placeholder')" required show-button>
           <template #button>
-            <VerificationCodeButton :email="form.email" type="RESET_PASSWORD" class="w-32" />
+            <VerificationCodeButton ref="verificationCodeButtonRef" :email="form.email" type="RESET_PASSWORD"
+              @click="onVerifyCodeClick" class="w-32" />
           </template>
         </BaseInput>
 
@@ -41,6 +42,7 @@ import { useI18n } from 'vue-i18n';
 import api from '../api';
 import { useRouter } from 'vue-router';
 import { useToastStore } from '../stores/toast';
+import { useTurnstileStore } from '../stores/turnstile';
 import AuthLayout from '../components/AuthLayout.vue';
 import BaseInput from '../components/BaseInput.vue';
 import BaseButton from '../components/BaseButton.vue';
@@ -49,14 +51,27 @@ import VerificationCodeButton from '../components/VerificationCodeButton.vue';
 const { t } = useI18n();
 const router = useRouter();
 const toastStore = useToastStore();
+const turnstileStore = useTurnstileStore();
+
 const form = ref({
   email: '',
   verificationCode: '',
   newPassword: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  turnstileToken: ''
 });
 
 const loading = ref(false);
+const verificationCodeButtonRef = ref();
+
+const onVerifyCodeClick = async () => {
+  try {
+    const token = await turnstileStore.verify('forgot_password_send_code');
+    verificationCodeButtonRef.value?.handleClick(token);
+  } catch (e) {
+    // User cancelled
+  }
+};
 
 const handleReset = async () => {
   if (form.value.newPassword !== form.value.confirmPassword) {
@@ -66,12 +81,17 @@ const handleReset = async () => {
 
   loading.value = true;
   try {
+    const token = await turnstileStore.verify('forgot_password_reset');
+    form.value.turnstileToken = token;
+
     const { confirmPassword, ...resetData } = form.value;
     await api.post('/auth/password-reset', resetData);
     toastStore.success(t('auth.forgot-password.reset-success'), t('auth.forgot-password.reset-success-message'));
     router.push('/login');
   } catch (e: any) {
-    toastStore.error(t('auth.forgot-password.reset-failed'), e.message || t('auth.forgot-password.check-code-message'));
+    if (e.message !== 'User cancelled') {
+      toastStore.error(t('auth.forgot-password.reset-failed'), e.message || t('auth.forgot-password.check-code-message'));
+    }
   } finally {
     loading.value = false;
   }

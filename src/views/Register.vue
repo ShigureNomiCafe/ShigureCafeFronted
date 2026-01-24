@@ -48,7 +48,8 @@
           <BaseInput id="email" v-model.trim="form.email" :label="$t('auth.register.email-label')" type="email"
             :placeholder="$t('auth.register.email-placeholder')" required show-button>
             <template #button>
-              <VerificationCodeButton :email="form.email" type="REGISTER" class="w-32" />
+              <VerificationCodeButton ref="verificationCodeButtonRef" :email="form.email" type="REGISTER"
+                @click="onVerifyCodeClick" class="w-32" />
             </template>
           </BaseInput>
 
@@ -82,6 +83,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import api from '../api';
 import { useToastStore } from '../stores/toast';
+import { useTurnstileStore } from '../stores/turnstile';
 import { copyToClipboard } from '../utils/clipboard';
 import AuthLayout from '../components/AuthLayout.vue';
 import BaseInput from '../components/BaseInput.vue';
@@ -90,14 +92,17 @@ import VerificationCodeButton from '../components/VerificationCodeButton.vue';
 
 const router = useRouter();
 const toastStore = useToastStore();
+const turnstileStore = useTurnstileStore();
 const { t } = useI18n();
+
 const form = reactive({
   username: '',
   nickname: '',
   email: '',
   password: '',
   confirmPassword: '',
-  verificationCode: ''
+  verificationCode: '',
+  turnstileToken: ''
 });
 
 const loading = ref(false);
@@ -118,6 +123,17 @@ const copyAuditCode = async () => {
   }
 };
 
+const verificationCodeButtonRef = ref();
+
+const onVerifyCodeClick = async () => {
+  try {
+    const token = await turnstileStore.verify('register_send_code');
+    verificationCodeButtonRef.value?.handleClick(token);
+  } catch (e) {
+    // User cancelled
+  }
+};
+
 const handleRegister = async () => {
   const usernameRegex = /^[a-zA-Z0-9-_]{3,50}$/;
   if (!usernameRegex.test(form.username)) {
@@ -132,13 +148,18 @@ const handleRegister = async () => {
 
   loading.value = true;
   try {
+    const token = await turnstileStore.verify('register');
+    form.turnstileToken = token;
+
     const { confirmPassword, ...registerData } = form;
     const response: any = await api.post('/registrations', registerData);
     auditCode.value = response.auditCode;
     registrationSuccess.value = true;
     toastStore.success(t('auth.register.messages.submit-success'), t('auth.register.messages.save-audit-code'));
   } catch (e: any) {
-    toastStore.error(t('auth.register.messages.register-failed'), e.message || t('auth.register.messages.check-info'));
+    if (e.message !== 'User cancelled') {
+      toastStore.error(t('auth.register.messages.register-failed'), e.message || t('auth.register.messages.check-info'));
+    }
   } finally {
     loading.value = false;
   }

@@ -26,7 +26,7 @@ export const useVerificationStore = defineStore('verification', {
       }, 1000);
     },
 
-    async sendCode(email: string, type: 'REGISTER' | '2FA' | 'UPDATE_EMAIL' | 'RESET_PASSWORD') {
+    async sendCode(email: string, type: 'REGISTER' | '2FA' | 'UPDATE_EMAIL' | 'RESET_PASSWORD', turnstileToken?: string) {
       const toastStore = useToastStore();
 
       if (!email) {
@@ -40,9 +40,14 @@ export const useVerificationStore = defineStore('verification', {
         return false;
       }
 
+      if (!turnstileToken) {
+        toastStore.error(t('verification.messages.send-failed'), t('verification.messages.captcha-required'));
+        return false;
+      }
+
       this.sending = true;
       try {
-        await api.post('/auth/verification-codes', { email, type });
+        await api.post('/auth/verification-codes', { email, type, turnstileToken });
         toastStore.success(t('verification.messages.send-success'), t('verification.messages.send-success-detail'));
         this.startCountdown();
         return true;

@@ -253,6 +253,7 @@
       "register-link": "Don't have an account? Register now",
       "forgot-password-link": "Forgot password?",
       "login-failed": "Login Failed",
+      "captcha-required": "Please complete the CAPTCHA first",
       "login-failed-detail": "Please check your username and password"
     },
     "two-factor": {
@@ -465,6 +466,7 @@
       "send-failed": "Send Failed",
       "enter-email": "Please enter email address",
       "invalid-email": "Please enter a valid email address",
+      "captcha-required": "Please complete the CAPTCHA first",
       "send-success": "Send Successful",
       "send-success-detail": "Verification code has been sent to your email, please check your inbox.",
       "request-failed": "Request failed, please try again later"
@@ -481,6 +483,11 @@
     "sr-previous": "Previous",
     "sr-next": "Next",
     "pagination-label": "Pagination"
+  },
+  "captcha": {
+    "title": "Security Verification",
+    "hint": "Please complete the verification below to continue",
+    "cancel": "Cancel"
   },
   "errors": {
     "AUTHENTICATION_FAILED": "Invalid username or password",
@@ -505,6 +512,7 @@
     "INVALID_AUDIT_CODE": "Invalid audit code",
     "AUDIT_CODE_EXPIRED": "Audit code expired",
     "RATE_LIMIT_EXCEEDED": "Too many requests, please try again later",
+    "INVALID_CAPTCHA": "CAPTCHA verification failed, please try again",
     "INVALID_2FA_CODE": "Invalid 2FA code",
     "INTERNAL_SERVER_ERROR": "Internal server error",
     "METHOD_NOT_ALLOWED": "Method not allowed",
