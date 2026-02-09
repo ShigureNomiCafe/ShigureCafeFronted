@@ -117,7 +117,7 @@ import BaseButton from '../components/BaseButton.vue';
 import BaseInput from '../components/BaseInput.vue';
 import { useNoticeStore } from '../stores/notice';
 import { useToastStore } from '../stores/toast';
-import { ArrowLeft, Save, Loader2, ArrowUpToLine, Mail, Info } from 'lucide-vue-next';
+import { ArrowLeft, Save, Loader2, ArrowUpToLine, Mail } from 'lucide-vue-next';
 import { renderMarkdown } from '../utils/markdown';
 
 const { t } = useI18n();
