@@ -362,7 +362,6 @@ const openEdit = (user: User) => {
 
 const closeEdit = () => {
   showEditModal.value = false;
-  showRoleDropdown.value = false;
   selectedUser.value = null;
 };
 
