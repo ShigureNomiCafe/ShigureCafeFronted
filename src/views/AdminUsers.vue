@@ -12,7 +12,7 @@
             <BaseCard body-class="p-0 overflow-hidden" class="animate-slide-up animate-delay-100">
               <transition name="fade-slide" mode="out-in">
                 <div
-                  :key="filteredUsers.length > 0 ? `users-${userStore.currentPage}-${searchQuery}` : (userStore.loading ? 'loading' : 'empty')"
+                  :key="filteredUsers.length > 0 ? `users-${userStore.currentPage}-${searchQuery}-${userStore.fetchCount}` : (userStore.loading ? 'loading' : 'empty')"
                   class="min-h-[300px] flex flex-col">
                   <!-- Loading State (only if no cache) -->
                   <div v-if="userStore.loading && filteredUsers.length === 0"
@@ -90,12 +90,9 @@
                               <RoleBadge :role="user.role!" />
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
-                              <span :class="[
-                                'px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full',
-                                user.twoFactorEnabled ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
-                              ]">
+                              <BaseBadge :variant="user.twoFactorEnabled ? 'success' : 'neutral'">
                                 {{ user.twoFactorEnabled ? t('admin-users.enabled') : t('admin-users.disabled') }}
-                              </span>
+                              </BaseBadge>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap">
                               <StatusBadge :status="user.status!" />
@@ -160,39 +157,7 @@
           <BaseInput v-model="editForm.nickname" :label="t('admin-users.fields.nickname')"
             :placeholder="t('admin-users.no-nickname')" />
           <BaseInput v-model="editForm.email" :label="t('admin-users.fields.email')" type="email" />
-          <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">{{ t('admin-users.fields.role') }}</label>
-            <div class="relative">
-              <button @click="showRoleDropdown = !showRoleDropdown" type="button"
-                class="relative w-full bg-white/50 border border-gray-300 rounded-xl shadow-sm pl-4 pr-10 py-2.5 text-left cursor-default focus:outline-none focus:border-blue-500 sm:text-sm transition-all duration-200">
-                <span class="block truncate font-medium text-gray-900">{{ formatRole(editForm.role) }}</span>
-                <span class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                  <ChevronDown class="h-4 w-4 text-gray-400 transition-transform duration-300"
-                    :class="{ 'rotate-180': showRoleDropdown }" />
-                </span>
-              </button>
-
-              <transition enter-active-class="transition ease-out duration-200"
-                enter-from-class="opacity-0 scale-95 -translate-y-2"
-                enter-to-class="opacity-100 scale-100 translate-y-0"
-                leave-active-class="transition ease-in duration-150"
-                leave-from-class="opacity-100 scale-100 translate-y-0"
-                leave-to-class="opacity-0 scale-95 -translate-y-2">
-                <div v-if="showRoleDropdown"
-                  class="absolute z-60 mt-1 w-full bg-white/95 backdrop-blur-lg shadow-xl max-h-60 rounded-xl py-1 text-base overflow-auto focus:outline-none sm:text-sm border border-gray-100">
-                  <div v-for="role in ['USER', 'ADMIN']" :key="role" @click="selectRole(role)"
-                    class="cursor-pointer select-none relative py-2.5 pl-4 pr-9 hover:bg-blue-50 transition-colors"
-                    :class="editForm.role === role ? 'text-blue-600 bg-blue-50/50' : 'text-gray-900'">
-                    <span class="block truncate" :class="{ 'font-bold': editForm.role === role }">{{ formatRole(role)
-                      }}</span>
-                    <span v-if="editForm.role === role" class="absolute inset-y-0 right-0 flex items-center pr-4">
-                      <Check class="h-4 w-4" />
-                    </span>
-                  </div>
-                </div>
-              </transition>
-            </div>
-          </div>
+          <BaseSelect v-model="editForm.role" :options="roleOptions" :label="t('admin-users.fields.role')" />
         </div>
         <template #footer>
           <BaseButton @click="saveEdit" :label="t('admin-users.buttons.save-changes')" />
@@ -315,15 +280,17 @@ import BaseInput from '../components/BaseInput.vue';
 import Modal from '../components/Modal.vue';
 import Pagination from '../components/Pagination.vue';
 import CustomScrollContainer from '../components/CustomScrollContainer.vue';
+import BaseSelect from '../components/BaseSelect.vue';
 import AdminPageHeader from '../components/AdminPageHeader.vue';
 import UserAvatar from '../components/UserAvatar.vue';
 import StatusBadge from '../components/StatusBadge.vue';
 import RoleBadge from '../components/RoleBadge.vue';
+import BaseBadge from '../components/BaseBadge.vue';
 import api from '../api';
 import { useToastStore } from '../stores/toast';
 import { useAuthStore } from '../stores/auth';
 import { useUserStore, type User } from '../stores/user';
-import { Edit2, KeyRound, Loader2, Users, Trash2, ChevronDown, Check, Ban, UserCheck, ShieldOff } from 'lucide-vue-next';
+import { Edit2, KeyRound, Loader2, Users, Trash2, Ban, UserCheck, ShieldOff } from 'lucide-vue-next';
 import { formatRole, truncateText } from '../utils/formatters';
 
 const { t } = useI18n();
@@ -335,10 +302,14 @@ const showDeleteModal = ref(false);
 const showBanModal = ref(false);
 const showPardonModal = ref(false);
 const showReset2FAModal = ref(false);
-const showRoleDropdown = ref(false);
 const selectedUser = ref<User | null>(null);
 const toast = useToastStore();
 const auth = useAuthStore();
+
+const roleOptions = computed(() => [
+  { label: formatRole('USER'), value: 'USER' },
+  { label: formatRole('ADMIN'), value: 'ADMIN' }
+]);
 
 const filteredUsers = computed(() => {
   const users = userStore.adminUsers;
@@ -358,11 +329,6 @@ const editForm = ref({
   email: '',
   role: 'USER'
 });
-
-const selectRole = (role: string) => {
-  editForm.value.role = role;
-  showRoleDropdown.value = false;
-};
 
 const passwordForm = ref({
   newPassword: '',

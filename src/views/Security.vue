@@ -49,10 +49,9 @@
             <BaseCard :title="$t('security.email-2fa.title')" :subtitle="$t('security.email-2fa.subtitle')">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                  <div
-                    :class="[auth.user?.email2faEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700', 'px-3 py-1 rounded-full text-xs font-bold transition-colors duration-300']">
+                  <BaseBadge :variant="auth.user?.email2faEnabled ? 'success' : 'neutral'">
                     {{ auth.user?.email2faEnabled ? $t('security.status.enabled') : $t('security.status.disabled') }}
-                  </div>
+                  </BaseBadge>
                   <span class="text-sm text-gray-600">{{ $t('security.email-2fa.status-label') }}</span>
                 </div>
                 <BaseButton @click="handleToggleEmail2FA" :disabled="toggleEmailLoading"
@@ -68,10 +67,9 @@
             <BaseCard :title="$t('security.totp.title')" :subtitle="$t('security.totp.subtitle')">
               <div class="flex items-center justify-between">
                 <div class="flex items-center space-x-3">
-                  <div
-                    :class="[auth.user?.totpEnabled ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700', 'px-3 py-1 rounded-full text-xs font-bold transition-colors duration-300']">
+                  <BaseBadge :variant="auth.user?.totpEnabled ? 'success' : 'neutral'">
                     {{ auth.user?.totpEnabled ? $t('security.status.enabled') : $t('security.status.disabled') }}
-                  </div>
+                  </BaseBadge>
                   <span class="text-sm text-gray-600">{{ $t('security.totp.status-label') }}</span>
                 </div>
                 <BaseButton @click="handle2FAAction" :disabled="toggleLoading"
@@ -174,6 +172,7 @@ import QrcodeVue from 'qrcode.vue';
 import BaseCard from '../components/BaseCard.vue';
 import BaseInput from '../components/BaseInput.vue';
 import BaseButton from '../components/BaseButton.vue';
+import BaseBadge from '../components/BaseBadge.vue';
 import VerificationCodeButton from '../components/VerificationCodeButton.vue';
 import Modal from '../components/Modal.vue';
 import DigitInput from '../components/DigitInput.vue';

@@ -57,6 +57,15 @@
               ]">
               {{ t('nav.audit-management') }}
             </router-link>
+            <router-link v-if="auth.user?.role === 'ADMIN'" to="/admin/logs"
+              class="inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-all duration-200"
+              :class="[
+                $route.path === '/admin/logs'
+                  ? 'border-blue-500 text-gray-900'
+                  : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700 hover:-translate-y-0.5'
+              ]">
+              {{ t('nav.log-management') }}
+            </router-link>
           </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -208,6 +217,15 @@
                 : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
             ]">
             {{ t('nav.audit-management') }}
+          </router-link>
+          <router-link v-if="auth.user?.role === 'ADMIN'" to="/admin/logs" @click="isOpen = false"
+            class="block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors duration-150 ease-in-out"
+            :class="[
+              $route.path === '/admin/logs'
+                ? 'bg-blue-50 border-blue-500 text-blue-700'
+                : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+            ]">
+            {{ t('nav.log-management') }}
           </router-link>
           <button @click="handleLogoutAndClose"
             class="block w-full text-left pl-3 pr-4 py-2 border-l-4 text-base font-medium border-transparent text-red-600 hover:bg-red-50 hover:border-red-300 transition-colors duration-150 ease-in-out">

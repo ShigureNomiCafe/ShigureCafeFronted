@@ -36,6 +36,11 @@
           </div>
         </div>
 
+        <!-- Extra Filters Slot -->
+        <div v-if="!isSearchExpanded" class="hidden md:flex items-center space-x-2">
+          <slot name="extra"></slot>
+        </div>
+
         <!-- Refresh Button -->
         <BaseButton v-show="!isSearchExpanded" variant="secondary" @click="$emit('refresh')" :loading="loading"
           hide-loading-text-on-mobile

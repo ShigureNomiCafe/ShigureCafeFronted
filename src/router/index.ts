@@ -13,6 +13,7 @@ const Security = () => import('../views/Security.vue');
 const Chat = () => import('../views/Chat.vue');
 const AdminUsers = () => import('../views/AdminUsers.vue');
 const AdminAudits = () => import('../views/AdminAudits.vue');
+const AdminLogs = () => import('../views/AdminLogs.vue');
 const NoticeEditor = () => import('../views/NoticeEditor.vue');
 const AuthWrapper = () => import('../views/AuthWrapper.vue');
 
@@ -102,6 +103,12 @@ const router = createRouter({
       path: '/admin/audits',
       name: 'AdminAudits',
       component: AdminAudits,
+      meta: { requiresAuth: true, requiresAdmin: true }
+    },
+    {
+      path: '/admin/logs',
+      name: 'AdminLogs',
+      component: AdminLogs,
       meta: { requiresAuth: true, requiresAdmin: true }
     },
     { path: '/:pathMatch(.*)*', redirect: '/' }

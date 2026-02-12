@@ -1,12 +1,13 @@
 <template>
-  <span :class="[badgeClass, 'px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full transition-colors duration-200']">
+  <BaseBadge :variant="badgeVariant">
     {{ label }}
-  </span>
+  </BaseBadge>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import { formatRole } from '../utils/formatters';
+import BaseBadge from './BaseBadge.vue';
 
 const props = defineProps<{
   role: string;
@@ -14,13 +15,13 @@ const props = defineProps<{
 
 const label = computed(() => formatRole(props.role));
 
-const badgeClass = computed(() => {
+const badgeVariant = computed(() => {
   switch (props.role?.toUpperCase()) {
     case 'ADMIN':
-      return 'bg-purple-100 text-purple-800';
+      return 'purple';
     case 'USER':
     default:
-      return 'bg-blue-100 text-blue-800';
+      return 'info';
   }
 });
 </script>

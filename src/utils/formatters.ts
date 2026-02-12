@@ -37,3 +37,22 @@ export const formatDateTime = (timestamp: number) => {
     hour12: false
   });
 };
+
+export const formatDateTimePrecise = (timestamp: number) => {
+  if (!timestamp) return '';
+  const date = new Date(timestamp);
+  const locale = i18n.global.locale.value || i18n.global.locale;
+  
+  const base = date.toLocaleString(locale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false
+  });
+  
+  const ms = date.getMilliseconds().toString().padStart(3, '0');
+  return `${base}.${ms}`;
+};

@@ -147,6 +147,29 @@
             </BaseCard>
           </div>
 
+          <div v-if="auth.user?.role === 'ADMIN'" class="animate-slide-up animate-delay-350">
+            <BaseCard @click="$router.push('/admin/logs')" hoverable body-class="p-6" class="h-full">
+              <div class="flex items-center">
+                <div class="flex-shrink-0 bg-gray-100 rounded-md p-3 group-hover:bg-gray-200 transition-colors">
+                  <svg class="h-6 w-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <div class="ml-4">
+                  <h3 class="text-lg font-medium text-gray-900">{{ t('dashboard.log-management.title') }}</h3>
+                  <p class="mt-1 text-sm text-gray-500">{{ t('dashboard.log-management.desc') }}</p>
+                </div>
+              </div>
+              <template #footer>
+                <div class="text-sm">
+                  <span class="font-medium text-gray-600 group-hover:text-gray-500 transition-colors">{{
+                    t('dashboard.log-management.link') }} &rarr;</span>
+                </div>
+              </template>
+            </BaseCard>
+          </div>
+
         </div>
 
         <!-- Recent Activity -->
@@ -213,11 +236,11 @@ const displayedNotices = computed(() => {
 });
 
 const noticeDelayBase = computed(() => {
-  return auth.user?.role === 'ADMIN' ? 'animate-delay-350' : 'animate-delay-250';
+  return auth.user?.role === 'ADMIN' ? 'animate-delay-400' : 'animate-delay-250';
 });
 
 const getNoticeDelay = (index: number) => {
-  const base = auth.user?.role === 'ADMIN' ? 400 : 300;
+  const base = auth.user?.role === 'ADMIN' ? 450 : 300;
   return `animate-delay-${base + index * 50}`;
 };
 

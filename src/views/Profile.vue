@@ -93,10 +93,9 @@
                   <span class="text-sm text-gray-500" v-else>{{ t('profile.minecraft.sync-info') }}</span>
 
                   <div class="flex items-center">
-                    <div
-                      :class="[auth.user?.minecraftUuid ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700', 'px-3 py-0.5 rounded-full text-[10px] uppercase tracking-wider font-bold transition-colors duration-300']">
+                    <BaseBadge :variant="auth.user?.minecraftUuid ? 'success' : 'neutral'">
                       {{ auth.user?.minecraftUuid ? t('profile.minecraft.bound') : t('profile.minecraft.not-bound') }}
-                    </div>
+                    </BaseBadge>
                   </div>
                 </div>
               </div>
@@ -156,6 +155,7 @@ import Modal from '../components/Modal.vue';
 import UserAvatar from '../components/UserAvatar.vue';
 import RoleBadge from '../components/RoleBadge.vue';
 import StatusBadge from '../components/StatusBadge.vue';
+import BaseBadge from '../components/BaseBadge.vue';
 import ImageCropper from '../components/ImageCropper.vue';
 import api from '../api';
 import axios from 'axios';

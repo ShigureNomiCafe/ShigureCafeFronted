@@ -125,6 +125,25 @@
       "delete-failed": "Failed to delete user"
     }
   },
+  "admin-logs": {
+    "title": "System Logs",
+    "subtitle": "View execution records from backend and modules",
+    "no-logs": "No logs found",
+    "filters": {
+      "all-levels": "All Levels",
+      "all-sources": "All Sources",
+      "search-placeholder": "Search content..."
+    },
+    "table": {
+      "time": "Time",
+      "level": "Level",
+      "source": "Source",
+      "content": "Content"
+    },
+    "messages": {
+      "fetch-failed": "Failed to fetch system logs"
+    }
+  },
   "notices": {
     "title": "All Notices",
     "search-placeholder": "Search notice title/author...",
@@ -207,6 +226,11 @@
       "desc": "Handle user registration audit requests",
       "link": "Process audits"
     },
+    "log-management": {
+      "title": "System Logs",
+      "desc": "Monitor backend and module operation status",
+      "link": "View logs"
+    },
     "notice-management": {
       "title": "Notice Center",
       "desc-admin": "Publish, edit or manage system notices",
@@ -223,6 +247,7 @@
     "chat": "Chat",
     "user-management": "User Management",
     "audit-management": "Audit Management",
+    "log-management": "System Logs",
     "chinese": "简体中文",
     "english": "English",
     "open-user-menu": "Open user menu",

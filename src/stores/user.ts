@@ -57,6 +57,7 @@ export const useUserStore = defineStore('user', {
       pageSize: pag.pageSize,
       totalElements: pag.totalElements,
       totalPages: pag.totalPages,
+      fetchCount: 0,
       
       fetchPromises: {} as Record<string, Promise<any>>,
     };
@@ -171,6 +172,7 @@ export const useUserStore = defineStore('user', {
           this.totalElements = data.totalElements;
           this.totalPages = data.totalPages;
           this.globalLastUpdated = data.timestamp;
+          this.fetchCount++;
 
           this.saveToLocalStorage();
         } catch (error: any) {

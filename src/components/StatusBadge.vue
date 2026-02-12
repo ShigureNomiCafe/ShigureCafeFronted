@@ -1,12 +1,13 @@
 <template>
-  <span :class="[badgeClass, 'px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full transition-colors duration-200']">
+  <BaseBadge :variant="badgeVariant">
     {{ label }}
-  </span>
+  </BaseBadge>
 </template>
 
 <script setup lang="ts">
 import { computed } from 'vue';
 import { formatStatus } from '../utils/formatters';
+import BaseBadge from './BaseBadge.vue';
 
 const props = defineProps<{
   status: string;
@@ -18,18 +19,18 @@ const label = computed(() => {
   return formatStatus(props.status);
 });
 
-const badgeClass = computed(() => {
-  if (props.isExpired) return 'bg-gray-100 text-gray-800';
+const badgeVariant = computed(() => {
+  if (props.isExpired) return 'neutral';
   
   switch (props.status?.toUpperCase()) {
     case 'ACTIVE':
-      return 'bg-green-100 text-green-800';
+      return 'success';
     case 'PENDING':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'warning';
     case 'BANNED':
-      return 'bg-red-100 text-red-800';
+      return 'danger';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'neutral';
   }
 });
 </script>
