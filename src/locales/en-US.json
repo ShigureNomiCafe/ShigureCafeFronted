@@ -140,6 +140,9 @@
       "source": "Source",
       "content": "Content"
     },
+    "auto-scroll-on": "Auto Scroll On",
+    "auto-scroll-off": "Auto Scroll Off",
+    "scroll-to-bottom": "Scroll to Bottom",
     "messages": {
       "fetch-failed": "Failed to fetch system logs"
     }

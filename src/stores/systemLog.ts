@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 import api from '../api';
 import { useToastStore } from './toast';
 import i18n from '../locales';
-import type { SystemLog, PagedResponse } from '../types/log';
+import type { SystemLog } from '../types/log';
 
 const { t } = i18n.global;
 

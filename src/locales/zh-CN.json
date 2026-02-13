@@ -140,6 +140,9 @@
       "source": "来源",
       "content": "日志内容"
     },
+    "auto-scroll-on": "自动滚动已开启",
+    "auto-scroll-off": "自动滚动已关闭",
+    "scroll-to-bottom": "回到最底部",
     "messages": {
       "fetch-failed": "获取系统日志失败"
     }

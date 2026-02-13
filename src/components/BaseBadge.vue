@@ -1,7 +1,7 @@
 <template>
   <span :class="[
     colorClasses,
-    'px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full transition-colors duration-200'
+    'px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full transition-colors duration-200 select-none'
   ]">
     <slot>{{ label }}</slot>
   </span>

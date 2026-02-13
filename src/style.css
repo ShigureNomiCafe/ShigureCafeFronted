@@ -1,9 +1,12 @@
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/maple-mono@latest/400.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/maple-mono@latest/500.css');
+@import url('https://cdn.jsdelivr.net/npm/@fontsource/maple-mono@latest/700.css');
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
 @theme {
   --font-sans: "Noto Sans", "Noto Sans SC", "Noto Color Emoji", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  --font-mono: "Google Sans Code", "Noto Sans Mono", "Noto Color Emoji", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-mono: "Maple Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", "Noto Color Emoji", monospace;
 
   --animate-slide-up: slide-up 0.3s ease-out both;
   --animate-fade: fade 0.3s ease-out both;
