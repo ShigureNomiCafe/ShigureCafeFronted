@@ -17,7 +17,7 @@ A modern user management interface built with Vue 3 and Tailwind CSS 4.
 - **Game Sync**: Bidirectional real-time chat sync with Minecraft servers.
 - **Security**: TOTP/Email 2FA, Microsoft OAuth2, **Cloudflare Turnstile CAPTCHA**, and **automatic session validation/logout**.
 - **Notices**: Markdown & KaTeX support with reactions, read tracking, and **optional email notifications**.
-- **Admin**: User management, registration audits, and system monitoring.
+- **Admin**: User management, registration audits, and **real-time system log monitoring**.
 - **Multi-language**: Built-in support for English and Chinese.
 
 ## 🛠️ Getting Started

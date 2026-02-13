@@ -1,5 +1,16 @@
 # Changelog
 
+## [v1.2.0] - 2026-02-13
+
+### Features
+- Implement real-time system log management UI with terminal-like interface and infinite scroll (3a9d8bb, bd80ecb)
+
+### UI/UX
+- Polish log terminal UI and improve mobile responsiveness (489f853)
+
+### Bug Fixes
+- Remove unused Info import to fix build error (8929f8f)
+
 ## [v1.1.2] - 2026-02-08
 
 ### Features
