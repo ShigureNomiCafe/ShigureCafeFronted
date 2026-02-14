@@ -37,6 +37,7 @@ VITE_API_PROXY_TARGET=http://localhost:8080
 VITE_WS_PROXY_TARGET=ws://localhost:8080
 VITE_ALLOWED_HOSTS=localhost
 VITE_TURNSTILE_SITE_KEY=your_site_key_here
+VITE_TG_AUDIT_BOT_LINK=https://t.me/your_audit_bot
 ```
 
 ### Development

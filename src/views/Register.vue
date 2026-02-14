@@ -32,7 +32,12 @@
           {{ $t('auth.register.audit-code-hint') }}
         </p>
       </div>
-      <BaseButton :label="$t('auth.register.back-to-login')" @click="router.push('/login')" full-width />
+      <div v-if="auditBotLink" class="space-y-3">
+        <BaseButton :label="$t('auth.register.open-audit-bot')" @click="openAuditBot" variant="primary" full-width />
+        <BaseButton :label="$t('auth.register.back-to-login')" @click="router.push('/login')" variant="ghost"
+          full-width />
+      </div>
+      <BaseButton v-else :label="$t('auth.register.back-to-login')" @click="router.push('/login')" full-width />
     </div>
 
     <!-- Registration Form -->
@@ -109,6 +114,14 @@ const loading = ref(false);
 const registrationSuccess = ref(false);
 const auditCode = ref('');
 const copied = ref(false);
+
+const auditBotLink = import.meta.env.VITE_TG_AUDIT_BOT_LINK;
+
+const openAuditBot = () => {
+  if (auditBotLink) {
+    window.open(auditBotLink, '_blank');
+  }
+};
 
 const copyAuditCode = async () => {
   const success = await copyToClipboard(auditCode.value);

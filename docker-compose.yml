@@ -5,6 +5,7 @@ services:
       dockerfile: Dockerfile
       args:
         - VITE_TURNSTILE_SITE_KEY=${VITE_TURNSTILE_SITE_KEY}
+        - VITE_TG_AUDIT_BOT_LINK=${VITE_TG_AUDIT_BOT_LINK}
     expose:
       - "80"
     restart: unless-stopped
