@@ -1,5 +1,5 @@
 services:
-  cafe_fronted:
+  cafe-fronted:
     build:
       context: .
       dockerfile: Dockerfile
